@@ -4,6 +4,7 @@ from ._seek_collector import SeekCollector
 from ._source_file import SourceFile
 from ._utils import commandfile_arg_type
 from ._utils import configfile_arg_type
+from appdirs import AppDirs
 
 import argparse
 import configparser
@@ -16,7 +17,7 @@ import sys
 
 def main():
     # Load/Validate Arguments
-    parser = argparse.ArgumentParser(prog='batch-encoder',
+    parser = argparse.ArgumentParser(prog='batch_encoder',
                                      description='Generate/Execute FFmpeg commands for files in acting directory',
                                      formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('--mode', nargs='?', type=int, choices=[1, 2, 3], required=True,
@@ -27,8 +28,8 @@ def main():
                         help='1: Name of file commands are written to (default: commands.txt)\n'
                              '2: Name of file commands are executed from (default: commands.txt)\n'
                              '3: Unused')
-    parser.add_argument('--configfile', nargs='?', default='batch-encoder.ini', type=configfile_arg_type,
-                        help='Name of config file (default: batch-encoder.ini)\n'
+    parser.add_argument('--configfile', nargs='?', default='batch_encoder.ini', type=configfile_arg_type,
+                        help='Name of config file (default: batch_encoder.ini)\n'
                              'If the file does not exist, default configuration will be written\n'
                              'The file is expected to exist in the same directory as this script')
     parser.add_argument('--loglevel', nargs='?', default='info', choices=['debug', 'info', 'error'],
@@ -50,7 +51,8 @@ def main():
 
     # Write default config file if it doesn't exist
     config = configparser.ConfigParser()
-    config_file = os.path.join(sys.path[0], args.configfile)
+    dirs = AppDirs('batch_encoder', 'AnimeThemes')
+    config_file = os.path.join(dirs.user_config_dir, args.configfile)
     if not os.path.exists(config_file):
         config['Encoding'] = {EncodingConfig.config_allowed_filetypes: EncodingConfig.default_allowed_filetypes,
                               EncodingConfig.config_encoding_modes: EncodingConfig.default_encoding_modes,
@@ -60,6 +62,7 @@ def main():
                               EncodingConfig.config_default_audio_stream: ''}
         config['VideoFilters'] = EncodingConfig.default_video_filters
 
+        os.makedirs(os.path.dirname(config_file), exist_ok=True)
         with open(config_file, 'w', encoding='utf8') as f:
             config.write(f)
 

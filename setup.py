@@ -7,7 +7,7 @@ with open('README.md') as f:
 
 setup(
     name='animethemes-batch-encoder',
-    version='1.0',
+    version='1.0.1',
     author='paranarimasu',
     author_email='paranarimasu@gmail.com',
     url='https://github.com/AnimeThemes/animethemes-batch-encoder',
@@ -27,4 +27,7 @@ setup(
         'Operating System :: OS Independent',
     ],
     python_requires='>=3.6',
+    install_requires=[
+        'appdirs',
+    ],
 )

@@ -21,16 +21,58 @@ Ideally we are iterating over a combination of filters and settings, picking the
 
         python -m batch_encoder [-h] --mode [{1,2,3}] [--file [FILE]] [--configfile [CONFIGFILE]] --loglevel [{debug,info,error}]
 
-* `--mode 1`: Generates commands from input files in the current directory. User will be prompted for inclusion/exclusion of input file, start time, end time and output file name.
-* `--mode 2`: Execute commands from file line-by-line in the current directory.
-* `--mode 3`: Generate commands from input files in the current directory in the same manner as Mode 1 and then execute commands without writing to file.
-* `[FILE]`: The file that commands are written to or read from. Default: commands.txt in the current directory. Unused in `--mode 3`.
-* `[CONFIGFILE]`: The configuration file in which our properties are defined. Default: batch_encoder.ini written to the same directory as the batch_encoder.py script.
-* `AllowedFileTypes`: Configuration property for file extensions that will be considered source file candidates
-* `EncodingModes`: Configuration property for the inclusion and order of encoding modes `{CBR, VBR, CQ}`
-* `CRFs`: Configuration property for the ordered list of CRF values to use with VBR and/or CQ encoding modes
-* `IncludeUnfiltered`: Configuration property that sets the flag for including/excluding an encode without video filters for each EncodingMode
-* `VideoFilters`: Configuration items used for named video filtergraphs
-* `--loglevel error`: Only show error messages
-* `--loglevel info`: Show error messages and script progression info messages
-* `--loglevel debug`: Show all messages, including variable dumps
+**Mode**
+
+`--mode 1` generates commands from input files in the current directory.
+
+The user will be prompted for values that are not determined programmatically, such as inclusion/exclusion of a source file candidate, start time, end time and output file name.
+
+`--mode 2` executes commands from file in the current directory line-by-line.
+
+By default, the program looks for a file named `commands.txt` in the current directory. This file name can be specified by the `--file` argument.
+
+`--mode 3` generates commands from input files in the current directory and executes the commands sequentially without writing to file.
+
+The `--file` argument will be ignored in this case.
+
+**File**
+
+The file that commands are written to or read from.
+
+By default, the program will write to or read from `commands.txt` in the current directory.
+
+**Config File**
+
+The configuration file in which our encoding properties are defined.
+
+By default, the program will write to or read from `batch_encoder.ini` in the user config directory of appname `batch_encoder` and author `AnimeThemes`.
+
+Example: `C:\Users\paranarimasu\AppData\Local\AnimeThemes\batch_encoder\batch_encoder.ini`
+
+**Encoding Properties**
+
+`AllowedFileTypes` is a comma-separated listing of file extensions that will be considered for source file candidates.
+
+`EncodingModes` is a comma-separated listing of [bitrate control modes](https://developers.google.com/media/vp9/bitrate-modes) for inclusion and ordering of commands.
+
+Available bitrate control modes are:
+
+* `CBR` Constant Bitrate Mode
+* `VBR` Variable Bitrate Mode
+* `CQ` Constrained Quality Mode
+
+`CRFs` is a comma-separated listing of ordered CRF values to use with `VBR` and/or `CQ` bitrate control modes.
+
+`IncludeUnfiltered` is a flag for including or excluding an encode without video filters for each bitrate control mode and CRF pairing.
+
+`VideoFilters` is a configuration item list used for named video filtergraphs for each bitrate control mode and CRF pairing.
+
+**Logging**
+
+Determines the level of the logging for the program.
+
+`--loglevel error` will only output error messages.
+
+`--loglevel info` will output error messages and script progression info messages.
+
+`--loglevel debug` will output all messages, including variable dumps.
