@@ -82,29 +82,54 @@ class EncodeWebM:
         else:
             return '3200k'
 
+    # Limiting file size based on resolution and duration
+    def get_limit_file_size(self, video_filters=''):
+        source_file_duration = float(self.source_file.file_format['format']['duration'])
+
+        start_time = string_to_seconds(self.seek.ss) if self.seek.ss else 0
+        end_time = string_to_seconds(self.seek.to) if self.seek.to else source_file_duration
+        duration = end_time - start_time
+
+        for filter in video_filters.split(','):
+            if 'scale=-1:' in filter:
+                resolution = int(filter.split(':')[1])
+                break
+            else:
+                resolution = int(self.source_file.video_format['streams'][0]['height'])
+        
+        logging.debug(f'[EncodeWebm.get_limit_file_size] resolution: \'{resolution}\'')
+
+        max_allowed_bitrate = resolution * 6100 + 475000
+        max_allowed_size = max_allowed_bitrate * duration
+        limit_size = max_allowed_size / 8
+
+        return str(round(limit_size))
+
     # First-pass encode
-    def get_first_pass(self, encoding_mode, crf=None):
+    def get_first_pass(self, encoding_mode, crf=None, threads=4):
         return f'ffmpeg {self.seek.get_seek_string()} ' \
                f'-pass 1 -passlogfile {self.seek.output_name} ' \
                f'-map 0:v:{self.source_file.selected_video_stream} ' \
                f'-map 0:a:{self.source_file.selected_audio_stream} ' \
                f'-c:v libvpx-vp9 ' \
                f'{encoding_mode.first_pass_rate_control(self.cbr_bitrate, self.cbr_max_bitrate, crf)} ' \
-               f'-cpu-used 4 -g {self.g} -threads 4 -tile-columns 6 -frame-parallel 0 -auto-alt-ref 1 ' \
+               f'-cpu-used 4 -g {self.g} -threads {threads} -tile-columns 6 -frame-parallel 0 -auto-alt-ref 1 ' \
                f'-lag-in-frames 25 -row-mt 1 -pix_fmt yuv420p {self.colorspace.get_args()} -an -sn -f webm -y NUL'
 
     # Second-pass encode
-    def get_second_pass(self, encoding_mode, crf=None, video_filters='', webm_filename=''):
+    def get_second_pass(self, encoding_mode, crf=None, threads=4, video_filters='', limit_size_enable=True, webm_filename=''):
+        limit_size = '-fs ' + EncodeWebM.get_limit_file_size(self, video_filters=video_filters) + ' ' if limit_size_enable else ''
         return f'ffmpeg {self.seek.get_seek_string()} ' \
                f'-pass 2 -passlogfile {self.seek.output_name} ' \
                f'-map 0:v:{self.source_file.selected_video_stream} ' \
                f'-map 0:a:{self.source_file.selected_audio_stream} ' \
                f'-c:v libvpx-vp9 ' \
                f'{encoding_mode.second_pass_rate_control(self.cbr_bitrate, self.cbr_max_bitrate, crf)} ' \
-               f'-cpu-used 0 -g {self.g} -threads 4 {self.get_audio_filters()}{video_filters} -tile-columns 6 ' \
+               f'-cpu-used 0 -g {self.g} -threads {threads} {self.get_audio_filters()}{video_filters} -tile-columns 6 ' \
                f'-frame-parallel 0 -auto-alt-ref 1 -lag-in-frames 25 -row-mt 1 -pix_fmt yuv420p ' \
                f'{self.colorspace.get_args()} ' \
                f'-c:a libopus -b:a {self.audio_bitrate} -ar 48k ' \
+               f'{limit_size}' \
                f'-map_metadata -1 -map_chapters -1 -sn -f webm -y {webm_filename}.webm'
 
     # Build audio filtergraph for encodes
@@ -155,50 +180,60 @@ class EncodeWebM:
 
         for encoding_mode in encoding_config.encoding_modes:
             if BitrateMode.CBR.name == encoding_mode.upper():
-                file_commands.append(self.get_first_pass(BitrateMode.CBR))
+                file_commands.append(self.get_first_pass(BitrateMode.CBR, threads=encoding_config.threads))
                 if encoding_config.include_unfiltered:
                     file_commands.append(self.get_second_pass(BitrateMode.CBR,
+                                                              threads=encoding_config.threads,
                                                               video_filters=EncodeWebM.get_video_filters(),
+                                                              limit_size_enable=encoding_config.limit_size_enable,
                                                               webm_filename=self.get_webm_filename(
                                                                   cbr_bitrate=self.cbr_bitrate)))
                 for filter_name, filter_value in encoding_config.video_filters:
                     file_commands.append(self.get_second_pass(BitrateMode.CBR,
+                                                              threads=encoding_config.threads,
                                                               video_filters=EncodeWebM.get_video_filters(
                                                                   config_filter=filter_value),
+                                                              limit_size_enable=encoding_config.limit_size_enable,
                                                               webm_filename=self.get_webm_filename(
                                                                   cbr_bitrate=self.cbr_bitrate,
                                                                   filter_name=filter_name)))
             elif BitrateMode.VBR.name == encoding_mode.upper():
                 for crf in encoding_config.crfs:
-                    file_commands.append(self.get_first_pass(BitrateMode.VBR, crf=crf))
+                    file_commands.append(self.get_first_pass(BitrateMode.VBR, crf=crf, threads=encoding_config.threads))
                     if encoding_config.include_unfiltered:
                         file_commands.append(
-                            self.get_second_pass(BitrateMode.VBR, crf=crf, video_filters=EncodeWebM.get_video_filters(),
+                            self.get_second_pass(BitrateMode.VBR, crf=crf, threads=encoding_config.threads, video_filters=EncodeWebM.get_video_filters(),
+                                                 limit_size_enable=encoding_config.limit_size_enable,
                                                  webm_filename=self.get_webm_filename(crf=crf)))
                     for filter_name, filter_value in encoding_config.video_filters:
                         file_commands.append(self.get_second_pass(BitrateMode.VBR, crf=crf,
+                                                                  threads=encoding_config.threads,
                                                                   video_filters=EncodeWebM.get_video_filters(
                                                                       config_filter=filter_value),
+                                                                  limit_size_enable=encoding_config.limit_size_enable,
                                                                   webm_filename=self.get_webm_filename(
                                                                       crf=crf,
                                                                       filter_name=filter_name)))
             elif BitrateMode.CQ.name == encoding_mode.upper():
                 for crf in encoding_config.crfs:
-                    file_commands.append(self.get_first_pass(BitrateMode.CQ, crf=crf))
+                    file_commands.append(self.get_first_pass(BitrateMode.CQ, crf=crf, threads=encoding_config.threads))
                     if encoding_config.include_unfiltered:
                         file_commands.append(
-                            self.get_second_pass(BitrateMode.CQ, crf=crf, video_filters=self.get_video_filters(),
+                            self.get_second_pass(BitrateMode.CQ, crf=crf, threads=encoding_config.threads, video_filters=self.get_video_filters(),
+                                                 limit_size_enable=encoding_config.limit_size_enable,
                                                  webm_filename=self.get_webm_filename(crf=crf,
                                                                                       cbr_bitrate=self.cbr_bitrate)))
                     for filter_name, filter_value in encoding_config.video_filters:
                         file_commands.append(self.get_second_pass(BitrateMode.CQ, crf=crf,
+                                                                  threads=encoding_config.threads,
                                                                   video_filters=EncodeWebM.get_video_filters(
                                                                       config_filter=filter_value),
+                                                                  limit_size_enable=encoding_config.limit_size_enable,
                                                                   webm_filename=self.get_webm_filename(
                                                                       crf=crf,
                                                                       cbr_bitrate=self.cbr_bitrate,
                                                                       filter_name=filter_name)))
 
         logging.debug(f'[EncodeWebm.get_commands] # of file_commands: \'{len(file_commands)}\'')
-
+        
         return file_commands

@@ -63,6 +63,10 @@ Available bitrate control modes are:
 
 `CRFs` is a comma-separated listing of ordered CRF values to use with `VBR` and/or `CQ` bitrate control modes.
 
+`Threads` is the number of threads used to encode. Default is 4.
+
+`LimitSizeEnable` decides whether to include the `-fs` argument to eliminate an encode when it exceeds the allowed size based on our calculations. Default is True.
+
 `IncludeUnfiltered` is a flag for including or excluding an encode without video filters for each bitrate control mode and CRF pairing.
 
 `VideoFilters` is a configuration item list used for named video filtergraphs for each bitrate control mode and CRF pairing.
