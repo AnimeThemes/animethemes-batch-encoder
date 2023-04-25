@@ -7,9 +7,9 @@ with open('README.md') as f:
 
 setup(
     name='animethemes-batch-encoder',
-    version='1.0.1',
-    author='paranarimasu',
-    author_email='paranarimasu@gmail.com',
+    version='1.1',
+    author='AnimeThemes',
+    author_email='admin@animethemes.moe',
     url='https://github.com/AnimeThemes/animethemes-batch-encoder',
     description='Generate/Execute FFmpeg commands for files in acting directory',
     long_description=long_description,
@@ -22,6 +22,8 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
         'Operating System :: OS Independent',

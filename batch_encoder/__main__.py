@@ -57,6 +57,8 @@ def main():
         config['Encoding'] = {EncodingConfig.config_allowed_filetypes: EncodingConfig.default_allowed_filetypes,
                               EncodingConfig.config_encoding_modes: EncodingConfig.default_encoding_modes,
                               EncodingConfig.config_crfs: EncodingConfig.default_crfs,
+                              EncodingConfig.config_threads: EncodingConfig.default_threads,
+                              EncodingConfig.config_limit_size_enable: EncodingConfig.default_limit_size_enable,
                               EncodingConfig.config_include_unfiltered: EncodingConfig.default_include_unfiltered,
                               EncodingConfig.config_default_video_stream: '',
                               EncodingConfig.config_default_audio_stream: ''}
