@@ -65,9 +65,9 @@ Available bitrate control modes are:
 
 `Threads` is the number of threads used to encode. Default is 4.
 
-`LimitSizeEnable` decides whether to include the `-fs` argument to eliminate an encode when it exceeds the allowed size based on our calculations. Default is True.
+`LimitSizeEnable` is a flag for including the `-fs` argument to terminate an encode when it exceeds the allowed size. Default is True.
 
-`IncludeUnfiltered` is a flag for including or excluding an encode without video filters for each bitrate control mode and CRF pairing.
+`IncludeUnfiltered` is a flag for including or excluding an encode without video filters for each bitrate control mode and CRF pairing. Default is True.
 
 `VideoFilters` is a configuration item list used for named video filtergraphs for each bitrate control mode and CRF pairing.
 
