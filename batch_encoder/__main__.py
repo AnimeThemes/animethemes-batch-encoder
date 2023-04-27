@@ -96,9 +96,21 @@ def main():
                     for seek in seek_collector.get_seek_list():
                         logging.info(f'Generating commands with seek ss: \'{seek.ss}\', to: \'{seek.to}\'')
                         encode_webm = EncodeWebM(source_file, seek)
-                        commands = commands + encode_webm.get_commands(encoding_config)
+                        load_commands = encode_webm.get_commands(encoding_config)
+                        commands = commands + load_commands
                 except KeyboardInterrupt:
                     logging.info(f'Exiting from inclusion of file \'{source_file_candidate}\' after keyboard interrupt')
+        
+        # Alternate lines per source files
+        if encoding_config.alternate_source_files == True:
+            output_list = []
+            lines_per_source = len(load_commands)
+            for i in range(lines_per_source):
+                output_list.append(commands[i])
+                for k in range(1, len(commands) // lines_per_source):
+                    output_list.append(commands[i + lines_per_source * k])
+
+            commands = output_list
 
     # Write commands to file
     if args.mode == 1:

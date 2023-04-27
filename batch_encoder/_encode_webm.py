@@ -130,7 +130,7 @@ class EncodeWebM:
                f'{self.colorspace.get_args()} ' \
                f'-c:a libopus -b:a {self.audio_bitrate} -ar 48k ' \
                f'{limit_size}' \
-               f'-map_metadata -1 -map_chapters -1 -sn -f webm -y {webm_filename}.webm'
+               f'-map_metadata:g -1 -map_metadata:s:v -1 -map_metadata:s:a -1 -map_chapters -1 -sn -f webm -y {webm_filename}.webm'
 
     # Build audio filtergraph for encodes
     def get_audio_filters(self):

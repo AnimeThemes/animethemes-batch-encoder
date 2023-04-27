@@ -67,6 +67,8 @@ Available bitrate control modes are:
 
 `LimitSizeEnable` is a flag for including the `-fs` argument to terminate an encode when it exceeds the allowed size. Default is True.
 
+`AlternateSourceEnable` is a flag for alternate command lines between source files. Default is False.
+
 `IncludeUnfiltered` is a flag for including or excluding an encode without video filters for each bitrate control mode and CRF pairing. Default is True.
 
 `VideoFilters` is a configuration item list used for named video filtergraphs for each bitrate control mode and CRF pairing.

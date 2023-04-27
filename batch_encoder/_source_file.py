@@ -150,4 +150,4 @@ class SourceFile:
         channels = int(self.audio_format['streams'][0].get('channels', 2))
         channel_layout = self.audio_format['streams'][0].get('channel_layout', 'stereo')
         if channels != 2 or channel_layout != 'stereo':
-            audio_filters.append('aresample=ocl=stereo')
+            audio_filters.append('aresample=ochl=stereo')
