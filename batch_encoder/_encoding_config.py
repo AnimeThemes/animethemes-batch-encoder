@@ -8,6 +8,7 @@ class EncodingConfig:
     config_crfs = 'CRFs'
     config_threads = 'Threads'
     config_limit_size_enable = 'LimitSizeEnable'
+    config_alternate_source_files = 'AlternateSourceFiles'
     config_include_unfiltered = 'IncludeUnfiltered'
 
     # Default Config keys
@@ -18,21 +19,23 @@ class EncodingConfig:
     default_allowed_filetypes = '.avi,.m2ts,.mkv,.mp4,.wmv'
     default_encoding_modes = f'{BitrateMode.VBR.name},{BitrateMode.CBR.name}'
     default_crfs = '12,15,18,21,24'
-    default_limit_size_enable = True
     default_threads = '4'
+    default_limit_size_enable = True
+    default_alternate_source_files = False
     default_include_unfiltered = True
     default_video_filters = {'filtered': 'hqdn3d=0:0:3:3,gradfun,unsharp',
                              'lightdenoise': 'hqdn3d=0:0:3:3',
                              'heavydenoise': 'hqdn3d=1.5:1.5:6:6',
                              'unsharp': 'unsharp'}
 
-    def __init__(self, allowed_filetypes, encoding_modes, crfs, threads, limit_size_enable, include_unfiltered, video_filters, default_video_stream,
+    def __init__(self, allowed_filetypes, encoding_modes, crfs, threads, limit_size_enable, alternate_source_files, include_unfiltered, video_filters, default_video_stream,
                  default_audio_stream):
         self.allowed_filetypes = allowed_filetypes
         self.encoding_modes = encoding_modes
         self.crfs = crfs
         self.threads = threads
         self.limit_size_enable = limit_size_enable
+        self.alternate_source_files = alternate_source_files
         self.include_unfiltered = include_unfiltered
         self.video_filters = video_filters
         self.default_video_stream = default_video_stream
@@ -48,6 +51,7 @@ class EncodingConfig:
         threads = config['Encoding'].get(EncodingConfig.config_threads,
                                          EncodingConfig.default_threads)
         limit_size_enable = config.getboolean('Encoding', EncodingConfig.config_limit_size_enable, fallback=EncodingConfig.default_limit_size_enable)
+        alternate_source_files = config.getboolean('Encoding', EncodingConfig.config_alternate_source_files, fallback=EncodingConfig.default_alternate_source_files)
         include_unfiltered = config.getboolean('Encoding', EncodingConfig.config_include_unfiltered,
                                                fallback=EncodingConfig.default_include_unfiltered)
         video_filters = config.items('VideoFilters', EncodingConfig.default_video_filters)
@@ -55,7 +59,7 @@ class EncodingConfig:
         default_video_stream = config['Encoding'].get(EncodingConfig.config_default_video_stream)
         default_audio_stream = config['Encoding'].get(EncodingConfig.config_default_audio_stream)
 
-        return cls(allowed_filetypes, encoding_modes, crfs, threads, limit_size_enable, include_unfiltered, video_filters, default_video_stream,
+        return cls(allowed_filetypes, encoding_modes, crfs, threads, limit_size_enable, alternate_source_files, include_unfiltered, video_filters, default_video_stream,
                    default_audio_stream)
 
     def get_default_stream(self, stream_type):
