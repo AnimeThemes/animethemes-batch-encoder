@@ -20,14 +20,10 @@ def main():
     parser = argparse.ArgumentParser(prog='batch_encoder',
                                      description='Generate/Execute FFmpeg commands for files in acting directory',
                                      formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('--mode', nargs='?', type=int, choices=[1, 2, 3], required=True,
-                        help='1: Generate commands and write to file\n'
-                             '2: Execute commands from file\n'
-                             '3: Generate and execute commands')
     parser.add_argument('--file', nargs='?', default='commands.txt', type=commandfile_arg_type,
                         help='1: Name of file commands are written to (default: commands.txt)\n'
                              '2: Name of file commands are executed from (default: commands.txt)\n'
-                             '3: Unused')
+                             '3: Name of file commands are written to (default: commands.txt)')
     parser.add_argument('--configfile', nargs='?', default='batch_encoder.ini', type=configfile_arg_type,
                         help='Name of config file (default: batch_encoder.ini)\n'
                              'If the file does not exist, default configuration will be written\n'
@@ -75,8 +71,25 @@ def main():
 
     commands = []
 
+    # Choose a mode and validate
+    while True:
+        mode = input("\033[0;34m"
+                    "(1) Generate commands\n"
+                    "(2) Execute commands\n"
+                    "(3) Generate and execute commands\n"
+                    "\033[1;37m"
+                    "Choose a mode: "
+                    "\x1b[0m"
+                    ) or '1'
+        
+        if mode.strip() in ['1', '2', '3']:
+            mode = int(mode)
+            break
+        else:
+            logging.error('Invalid mode')
+
     # Generate commands from source file candidates in current directory
-    if args.mode == 1 or args.mode == 3:
+    if mode == 1 or mode == 3:
         source_file_candidates = [f for f in os.listdir('.') if f.endswith(tuple(encoding_config.allowed_filetypes))]
 
         if not source_file_candidates:
@@ -113,15 +126,21 @@ def main():
 
             commands = output_list
 
-    # Write commands to file
-    if args.mode == 1:
+        # Write commands to file
         logging.info(f'Writing {len(commands)} commands to file \'{args.file}\'...')
         with open(args.file, mode='w', encoding='utf8') as f:
             for command in commands:
                 f.write(command + '\n')
 
+        # Execute commands in memory and write commands to file if requested
+        if mode == 3:
+            logging.info(f'Executing {len(commands)} commands...')
+            for command in commands:
+                subprocess.call(command, shell=True)
+
+
     # Read and execute commands from file
-    if args.mode == 2:
+    if mode == 2:
         if not os.path.isfile(args.file):
             logging.error(f'File \'{args.file}\' does not exist')
             sys.exit()
@@ -134,13 +153,6 @@ def main():
 
         for command in commands:
             subprocess.call(command, shell=True)
-
-    # Execute commands in memory
-    if args.mode == 3:
-        logging.info(f'Executing {len(commands)} commands...')
-        for command in commands:
-            subprocess.call(command, shell=True)
-
 
 if __name__ == '__main__':
     try:

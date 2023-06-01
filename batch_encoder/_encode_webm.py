@@ -104,6 +104,12 @@ class EncodeWebM:
         limit_size = max_allowed_size / 8
 
         return str(round(limit_size))
+    
+    # Command to preview a seek
+    def preview_seek(self, webm_filename=''):
+        return f'ffmpeg {self.seek.get_seek_string()} ' \
+               f'{self.get_audio_filters()} ' \
+               f'-vcodec copy -c:a aac -b:a 128k -sn -f mp4 {webm_filename}.mp4'
 
     # First-pass encode
     def get_first_pass(self, encoding_mode, crf=None, threads=4):
@@ -137,6 +143,7 @@ class EncodeWebM:
         audio_filters = []
         self.source_file.apply_audio_resampling(audio_filters)
         audio_filters.append(self.loudnorm_filter.get_normalization_filter())
+        audio_filters.append(self.seek.new_audio_filter) if self.seek.new_audio_filter.strip() != '' else None
         return '-af ' + ','.join(audio_filters)
 
     # Build video filtergraph for encodes
@@ -177,6 +184,8 @@ class EncodeWebM:
             f'crfs: \'{encoding_config.crfs}\', '
             f'include_unfiltered: \'{encoding_config.include_unfiltered}\', '
             f'video_filters: \'{encoding_config.video_filters}\'')
+        
+        file_commands.append(self.preview_seek(webm_filename=self.get_webm_filename()))
 
         for encoding_mode in encoding_config.encoding_modes:
             if BitrateMode.CBR.name == encoding_mode.upper():

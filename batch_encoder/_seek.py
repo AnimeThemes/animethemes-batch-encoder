@@ -1,10 +1,11 @@
 # The seek information for our encode
 class Seek:
-    def __init__(self, source_file, ss, to, output_name):
+    def __init__(self, source_file, ss, to, output_name, new_audio_filter):
         self.source_file = source_file
         self.ss = ss
         self.to = to
         self.output_name = output_name
+        self.new_audio_filter = new_audio_filter
 
     # The seek string arguments for our encode
     def get_seek_string(self):

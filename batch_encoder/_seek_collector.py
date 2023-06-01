@@ -15,11 +15,15 @@ class SeekCollector:
     # Examples: Tamayura-OP1, PlanetWith-ED1v2
     filename_pattern = re.compile('^[a-zA-Z0-9\-]+$')
 
+    # List for all output_files
+    all_output_names = []
+
     def __init__(self, source_file):
         self.source_file = source_file
         self.start_positions = SeekCollector.prompt_time('Start time(s): ')
         self.end_positions = SeekCollector.prompt_time('End time(s): ')
         self.output_names = SeekCollector.prompt_output_name()
+        self.new_audio_filters = SeekCollector.prompt_new_audio_filters()
 
     # Prompt the user for our list of starting/ending positions of our WebMs
     # For starting positions, a blank input value is the 0 position of the source file
@@ -50,6 +54,12 @@ class SeekCollector:
                     break
             if not invalid_name:
                 return filenames
+          
+    # Prompt the user for ours list of audio filters of ours WebMs
+    @staticmethod
+    def prompt_new_audio_filters():
+        new_audio_filters = input('Audio Filter(s): ').split(',,')
+        return new_audio_filters
 
     # Integrity Test 1: Our lists should be of equal length
     def is_length_consistent(self):
@@ -99,6 +109,16 @@ class SeekCollector:
 
         return len(set(self.output_names)) == len(self.output_names)
 
+    # Integrity Test 5: Unique output names in other source
+    def is_unique_output_names_other_source(self):
+        self.all_output_names.extend(self.output_names)
+
+        logging.debug(
+            f'[SeekCollector.is_unique_output_names_other_source] len(set): \'{len(set(self.all_output_names))}\', '
+            f'len: \'{len(self.all_output_names)}\'')
+        
+        return len(set(self.all_output_names)) == len(self.all_output_names)
+
     # Integrity Tests with feedback
     def is_valid(self):
         is_valid = True
@@ -119,15 +139,20 @@ class SeekCollector:
             is_valid = False
             logging.error('Output Names are not unique')
 
+        if not self.is_unique_output_names_other_source():
+            is_valid = False
+            self.all_output_names.pop()
+            logging.error('Output Name is already being used')
+
         return is_valid
 
     # Our list of positions, validated if called after is_valid
     def get_seek_list(self):
         seek_list = []
 
-        for start_position, end_position, output_name in zip(self.start_positions, self.end_positions,
-                                                             self.output_names):
-            seek = Seek(self.source_file, start_position, end_position, output_name)
+        for start_position, end_position, output_name, new_audio_filter in zip(self.start_positions, self.end_positions,
+                                                             self.output_names, self.new_audio_filters):
+            seek = Seek(self.source_file, start_position, end_position, output_name, new_audio_filter)
             seek_list.append(seek)
 
         return seek_list
