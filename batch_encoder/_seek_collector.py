@@ -141,8 +141,10 @@ class SeekCollector:
 
         if not self.is_unique_output_names_other_source():
             is_valid = False
-            self.all_output_names.pop()
             logging.error('Output Name is already being used')
+
+        if not is_valid:
+            self.all_output_names.pop()
 
         return is_valid
 
