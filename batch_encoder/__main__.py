@@ -27,7 +27,7 @@ def main():
     parser.add_argument('--file', nargs='?', default='commands.txt', type=commandfile_arg_type,
                         help='1: Name of file commands are written to (default: commands.txt)\n'
                              '2: Name of file commands are executed from (default: commands.txt)\n'
-                             '3: Unused')
+                             '3: Name of file commands are written to (default: commands.txt)')
     parser.add_argument('--configfile', nargs='?', default='batch_encoder.ini', type=configfile_arg_type,
                         help='Name of config file (default: batch_encoder.ini)\n'
                              'If the file does not exist, default configuration will be written\n'
@@ -113,12 +113,18 @@ def main():
 
             commands = output_list
 
-    # Write commands to file
-    if args.mode == 1:
+        # Write commands to file
         logging.info(f'Writing {len(commands)} commands to file \'{args.file}\'...')
         with open(args.file, mode='w', encoding='utf8') as f:
             for command in commands:
                 f.write(command + '\n')
+
+        # Execute commands in memory and write commands to file if requested
+        if args.mode == 3:
+            logging.info(f'Executing {len(commands)} commands...')
+            for command in commands:
+                subprocess.call(command, shell=True)
+
 
     # Read and execute commands from file
     if args.mode == 2:
@@ -134,13 +140,6 @@ def main():
 
         for command in commands:
             subprocess.call(command, shell=True)
-
-    # Execute commands in memory
-    if args.mode == 3:
-        logging.info(f'Executing {len(commands)} commands...')
-        for command in commands:
-            subprocess.call(command, shell=True)
-
 
 if __name__ == '__main__':
     try:

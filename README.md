@@ -25,15 +25,13 @@ Ideally we are iterating over a combination of filters and settings, picking the
 
 `--mode 1` generates commands from input files in the current directory.
 
-The user will be prompted for values that are not determined programmatically, such as inclusion/exclusion of a source file candidate, start time, end time and output file name.
+The user will be prompted for values that are not determined programmatically, such as inclusion/exclusion of a source file candidate, start time, end time, output file name and new audio filters.
 
 `--mode 2` executes commands from file in the current directory line-by-line.
 
 By default, the program looks for a file named `commands.txt` in the current directory. This file name can be specified by the `--file` argument.
 
-`--mode 3` generates commands from input files in the current directory and executes the commands sequentially without writing to file.
-
-The `--file` argument will be ignored in this case.
+`--mode 3` generates commands from input files in the current directory and executes the commands sequentially.
 
 **File**
 
