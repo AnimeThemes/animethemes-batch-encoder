@@ -154,7 +154,7 @@ class EncodeWebM:
         if config_filter is not None:
             video_filters.append(config_filter)
 
-        if not video_filters:
+        if not video_filters or len(video_filters[0].strip()) == 0:
             return ''
 
         return ' -vf ' + ','.join(video_filters)

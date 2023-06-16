@@ -45,7 +45,7 @@ The configuration file in which our encoding properties are defined.
 
 By default, the program will write to or read from `batch_encoder.ini` in the user config directory of appname `batch_encoder` and author `AnimeThemes`.
 
-Example: `C:\Users\paranarimasu\AppData\Local\AnimeThemes\batch_encoder\batch_encoder.ini`
+Example: `C:\Users\Kyrch\AppData\Local\AnimeThemes\batch_encoder\batch_encoder.ini`
 
 **Encoding Properties**
 
