@@ -1,3 +1,4 @@
+from ._interface import Interface
 from ._seek import Seek
 from ._utils import string_to_seconds
 
@@ -23,7 +24,7 @@ class SeekCollector:
         self.start_positions = SeekCollector.prompt_time('Start time(s): ')
         self.end_positions = SeekCollector.prompt_time('End time(s): ')
         self.output_names = SeekCollector.prompt_output_name()
-        self.new_audio_filters = SeekCollector.prompt_new_audio_filters()
+        self.new_audio_filters = SeekCollector.prompt_new_audio_filters(self)
 
     # Prompt the user for our list of starting/ending positions of our WebMs
     # For starting positions, a blank input value is the 0 position of the source file
@@ -57,8 +58,11 @@ class SeekCollector:
           
     # Prompt the user for ours list of audio filters of ours WebMs
     @staticmethod
-    def prompt_new_audio_filters():
-        new_audio_filters = input('Audio Filter(s): ').split(',,')
+    def prompt_new_audio_filters(self):
+        new_audio_filters = []
+        for output_name in self.output_names:
+            new_audio_filters.append(Interface.audio_filters_options(output_name))
+
         return new_audio_filters
 
     # Integrity Test 1: Our lists should be of equal length

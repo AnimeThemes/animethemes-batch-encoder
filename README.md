@@ -15,23 +15,25 @@ Ideally we are iterating over a combination of filters and settings, picking the
 
 **Install:**
 
-    pip install animethemes-batch-encoder
+    pip install animethemes-beta-batch-encoder
 
 ### Usage
 
-        python -m batch_encoder [-h] --mode [{1,2,3}] [--file [FILE]] [--configfile [CONFIGFILE]] --loglevel [{debug,info,error}]
+        python -m beta_batch_encoder [-h] [--generate | -g] [--execute | -e] [--file [FILE]] [--configfile [CONFIGFILE]] --loglevel [{debug,info,error}]
 
 **Mode**
 
-`--mode 1` generates commands from input files in the current directory.
+`--generate` generates commands from input files in the current directory.
 
 The user will be prompted for values that are not determined programmatically, such as inclusion/exclusion of a source file candidate, start time, end time, output file name and new audio filters.
 
-`--mode 2` executes commands from file in the current directory line-by-line.
+`--execute` executes commands from file in the current directory line-by-line.
 
 By default, the program looks for a file named `commands.txt` in the current directory. This file name can be specified by the `--file` argument.
 
-`--mode 3` generates commands from input files in the current directory and executes the commands sequentially.
+`--generate` and `--execute` generates commands from input files in the current directory and executes the commands sequentially.
+
+`None` will give modes options to run.
 
 **File**
 
@@ -43,9 +45,17 @@ By default, the program will write to or read from `commands.txt` in the current
 
 The configuration file in which our encoding properties are defined.
 
-By default, the program will write to or read from `batch_encoder.ini` in the user config directory of appname `batch_encoder` and author `AnimeThemes`.
+By default, the program will write to or read from `beta_batch_encoder.ini` in the user config directory of appname `beta_batch_encoder` and author `AnimeThemes`.
 
-Example: `C:\Users\Kyrch\AppData\Local\AnimeThemes\batch_encoder\batch_encoder.ini`
+Example: `C:\Users\Kyrch\AppData\Local\AnimeThemes\beta_batch_encoder\beta_batch_encoder.ini`
+
+**Audio Filters**
+
+* `Exit` Saves audio filters if selected and continues script execution.
+* `Custom` Apply a custom audio filter string.
+* `Fade In` Select an exponential value to apply Fade In.
+* `Fade Out` Select a start position and an exponential value to Fade Out.
+* `Mute` Select a start and end position to leave the volume at 0.
 
 **Encoding Properties**
 
