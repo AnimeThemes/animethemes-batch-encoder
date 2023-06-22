@@ -9,6 +9,7 @@ from appdirs import AppDirs
 
 import argparse
 import configparser
+import copy
 import logging
 import os
 import shutil
@@ -21,8 +22,9 @@ def main():
     parser = argparse.ArgumentParser(prog='beta_batch_encoder',
                                      description='Generate/Execute FFmpeg commands for files in acting directory',
                                      formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('--generate', '-g', action='store_true',help='Generate commands and write to file')
+    parser.add_argument('--generate', '-g', action='store_true', help='Generate commands and write to file')
     parser.add_argument('--execute', '-e', action='store_true', help='Execute commands from file')
+    parser.add_argument('--custom', '-c', action='store_true', help='Customize some options for each seek')
     parser.add_argument('--file', nargs='?', default='commands.txt', type=commandfile_arg_type,
                         help='1: Name of file commands are written to (default: commands.txt)\n'
                              '2: Name of file commands are executed from (default: commands.txt)\n'
@@ -59,6 +61,7 @@ def main():
                               EncodingConfig.config_threads: EncodingConfig.default_threads,
                               EncodingConfig.config_limit_size_enable: EncodingConfig.default_limit_size_enable,
                               EncodingConfig.config_alternate_source_files: EncodingConfig.default_alternate_source_files,
+                              EncodingConfig.create_preview: EncodingConfig.default_create_preview,
                               EncodingConfig.config_include_unfiltered: EncodingConfig.default_include_unfiltered,
                               EncodingConfig.config_default_video_stream: '',
                               EncodingConfig.config_default_audio_stream: ''}
@@ -108,10 +111,16 @@ def main():
                     is_collector_valid = seek_collector.is_valid()
 
                 for seek in seek_collector.get_seek_list():
+                    new_encoding_config = copy.copy(encoding_config)
+                    if args.custom:
+                        print(f'\033[92mOutput Name: {seek.output_name}\033[0m')
+                        new_encoding_config = Interface.custom_options(new_encoding_config)
+                        
                     logging.info(f'Generating commands with seek ss: \'{seek.ss}\', to: \'{seek.to}\'')
                     encode_webm = EncodeWebM(file_value, seek)
-                    load_commands = encode_webm.get_commands(encoding_config)
+                    load_commands = encode_webm.get_commands(new_encoding_config)
                     commands = commands + load_commands
+
             except KeyboardInterrupt:
                 logging.info(f'Exiting from inclusion of file \'{file}\' after keyboard interrupt')
         
