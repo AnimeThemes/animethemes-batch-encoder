@@ -185,7 +185,8 @@ class EncodeWebM:
             f'include_unfiltered: \'{encoding_config.include_unfiltered}\', '
             f'video_filters: \'{encoding_config.video_filters}\'')
         
-        file_commands.append(self.preview_seek(webm_filename=self.get_webm_filename()))
+        if encoding_config.create_preview:
+            file_commands.append(self.preview_seek(webm_filename=self.get_webm_filename()))
 
         for encoding_mode in encoding_config.encoding_modes:
             if BitrateMode.CBR.name == encoding_mode.upper():

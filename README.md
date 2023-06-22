@@ -19,7 +19,7 @@ Ideally we are iterating over a combination of filters and settings, picking the
 
 ### Usage
 
-        python -m beta_batch_encoder [-h] [--generate | -g] [--execute | -e] [--file [FILE]] [--configfile [CONFIGFILE]] --loglevel [{debug,info,error}]
+        python -m beta_batch_encoder [-h] [--generate | -g] [--execute | -e] [--custom | -c] [--file [FILE]] [--configfile [CONFIGFILE]] --loglevel [{debug,info,error}]
 
 **Mode**
 
@@ -34,6 +34,10 @@ By default, the program looks for a file named `commands.txt` in the current dir
 `--generate` and `--execute` generates commands from input files in the current directory and executes the commands sequentially.
 
 `None` will give modes options to run.
+
+**Custom**
+
+`--custom` customizes options like Create Preview, Limit Size Enable, CRFs and Encoding Modes for each output file. Default configs are specified in the `--file` argument.
 
 **File**
 
@@ -76,6 +80,8 @@ Available bitrate control modes are:
 `LimitSizeEnable` is a flag for including the `-fs` argument to terminate an encode when it exceeds the allowed size. Default is True.
 
 `AlternateSourceEnable` is a flag for alternate command lines between source files. Default is False.
+
+`CreatePreview` is a flag for create a command line to preview seeks. Default is False.
 
 `IncludeUnfiltered` is a flag for including or excluding an encode without video filters for each bitrate control mode and CRF pairing. Default is True.
 

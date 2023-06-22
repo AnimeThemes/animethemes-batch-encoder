@@ -8,22 +8,17 @@ class Interface:
 
     # Prompt the mode options to run to the user
     def choose_mode():
-        modes = {
-            'Generate commands': 1,
-            'Execute commands': 2,
-            'Generate and execute commands': 3
-        }
-
-        question = [inquirer.List('mode', message='Mode (Enter)', choices=list(modes.keys()))]
+        modes = [('Generate commands', 1), ('Execute commands', 2), ('Generate and execute commands', 3)]
+        question = [inquirer.List('mode', message='Mode (Enter)', choices=modes)]
         answer = inquirer.prompt(question)
 
         logging.debug(f'[Interface.choose_mode] answer["mode"]: \'{answer["mode"]}\'')
 
-        return modes[answer['mode']]
+        return answer['mode']
     
     # Prompt the source files to choose
     def choose_source_files(source_files):
-        question = [inquirer.Checkbox('source_files', message='Source Files (Space)', choices=source_files)]
+        question = [inquirer.Checkbox('source_files', message='Source Files (Space to select)', choices=source_files)]
         answer = inquirer.prompt(question)
 
         logging.debug(f'[Interface.choose_source_files] answer["source_files"]: \'{answer["source_files"]}\'')
@@ -114,3 +109,37 @@ class Interface:
         )
 
         return ','.join(audio_filters_list)
+
+    # Prompt custom options if requested
+    def custom_options(encoding_config):
+        create_preview = encoding_config.create_preview
+        limit_size_enable = encoding_config.limit_size_enable
+        crfs = encoding_config.crfs
+        encoding_modes = encoding_config.encoding_modes
+
+        validate_crfs = lambda _, x: all(y.strip().isdigit() for y in x.split(','))
+        validate_encoding_modes = lambda _, x: all(y.strip().upper() in ['VBR', 'CBR', 'CQ'] for y in x.split(','))
+
+        questions = [
+            inquirer.Confirm('create_preview', message=f'Create Preview?', default=create_preview),
+            inquirer.Confirm('limit_size_enable', message=f'Limit Size Enable?', default=limit_size_enable),
+            inquirer.Text('crfs', message='CRFs', default=','.join(crfs), validate=validate_crfs),
+            inquirer.Text('encoding_modes', message='Encoding Modes', default=','.join(encoding_modes), validate=validate_encoding_modes)
+        ]
+
+        answer = inquirer.prompt(questions)
+
+        encoding_config.create_preview = answer['create_preview']
+        encoding_config.limit_size_enable = answer['limit_size_enable']
+        encoding_config.crfs = answer['crfs'].split(',')
+        encoding_config.encoding_modes = answer['encoding_modes'].split(',')
+
+        logging.debug(
+            f'[Interface.custom_options] '
+            f'encoding_config.create_preview: \'{encoding_config.create_preview}\', '
+            f'encoding_config.limit_size_enable: \'{encoding_config.create_preview}\', '
+            f'encoding_config.crfs: \'{encoding_config.crfs}\', '
+            f'encoding_config.encoding_modes: \'{encoding_config.encoding_modes}\''
+        )
+
+        return encoding_config

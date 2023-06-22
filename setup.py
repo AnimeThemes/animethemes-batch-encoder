@@ -7,7 +7,7 @@ with open('README.md') as f:
 
 setup(
     name='animethemes-beta-batch-encoder',
-    version='1.1',
+    version='1.2',
     author='AnimeThemes',
     author_email='admin@animethemes.moe',
     url='https://github.com/AnimeThemes/animethemes-batch-encoder',
@@ -31,5 +31,6 @@ setup(
     python_requires='>=3.6',
     install_requires=[
         'appdirs',
+        'inquirer'
     ],
 )
