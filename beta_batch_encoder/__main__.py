@@ -112,6 +112,10 @@ def main():
 
                 for seek in seek_collector.get_seek_list():
                     new_encoding_config = copy.copy(encoding_config)
+
+                    print(f'\033[92mOutput Name: {seek.output_name}\033[0m')
+                    new_encoding_config = Interface.video_filters(new_encoding_config)
+
                     if args.custom:
                         print(f'\033[92mOutput Name: {seek.output_name}\033[0m')
                         new_encoding_config = Interface.custom_options(new_encoding_config)
