@@ -29,8 +29,7 @@ class SeekCollector:
     validate_output_name = lambda _, x: \
         len(x.strip()) == 0 \
         or all(SeekCollector.filename_pattern.match(y) and not y.strip() in SeekCollector.all_output_names for y in x.split(',')) \
-        and SeekCollector.start_positions == len(x.split(',')) \
-        and len(set(x)) == len(x)
+        and SeekCollector.start_positions == len(x.split(',')) 
 
     def __init__(self, source_file):
         self.source_file = source_file
