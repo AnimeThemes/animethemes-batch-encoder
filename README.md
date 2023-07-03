@@ -61,6 +61,16 @@ Example: `C:\Users\Kyrch\AppData\Local\AnimeThemes\beta_batch_encoder\beta_batch
 * `Fade Out` Select a start position and an exponential value to Fade Out.
 * `Mute` Select a start and end position to leave the volume at 0.
 
+**Video Filters**
+
+* `scale=-1:720` Add downscale to 720p
+* `scale=-1:720,hqdn3d=0:0:3:3,gradfun,unsharp` Add downscale to 720p and filters by AnimeThemes
+* `hqdn3d=0:0:3:3,gradfun,unsharp` Add filters by AnimeThemes
+* `hqdn3d=0:0:3:3` Add lightdenoise filter
+* `hqdn3d=1.5:1.5:6:6` Add heavydenoise filter
+* `unsharp` Add unsharp filter
+* `Custom` Apply a custom video filter string.
+
 **Encoding Properties**
 
 `AllowedFileTypes` is a comma-separated listing of file extensions that will be considered for source file candidates.
