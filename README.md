@@ -63,6 +63,7 @@ Example: `C:\Users\Kyrch\AppData\Local\AnimeThemes\beta_batch_encoder\beta_batch
 
 **Video Filters**
 
+* `No Filters` Add a line without filter
 * `scale=-1:720` Add downscale to 720p
 * `scale=-1:720,hqdn3d=0:0:3:3,gradfun,unsharp` Add downscale to 720p and filters by AnimeThemes
 * `hqdn3d=0:0:3:3,gradfun,unsharp` Add filters by AnimeThemes

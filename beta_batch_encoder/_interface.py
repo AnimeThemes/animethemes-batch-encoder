@@ -113,6 +113,7 @@ class Interface:
     # Prompt the user for our list of video filters
     def video_filters(encoding_config):
         video_filters_options = {
+            'No Filters': 'no-vf',
             'scale=-1:720': '720p',
             'scale=-1:720,hqdn3d=0:0:3:3,gradfun,unsharp': 'filtered-720p',
             'hqdn3d=0:0:3:3,gradfun,unsharp': 'filtered',
@@ -121,6 +122,9 @@ class Interface:
             'unsharp': 'unsharp',
             'Custom': 'custom'
         }
+        
+        if encoding_config.include_unfiltered:
+            encoding_config.video_filters.append(('no-vf', 'No Filters'))
 
         question = [inquirer.Checkbox('video_filters', message='Select Video Filters (Space to select)',
                                       choices=video_filters_options.keys(), default=[tp[1] for tp in encoding_config.video_filters])]

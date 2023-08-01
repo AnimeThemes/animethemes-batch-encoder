@@ -131,20 +131,6 @@ class SourceFile:
             except ValueError:
                 logging.error('Stream selection must be an integer')
 
-    # Include the source file candidate?
-    @staticmethod
-    def yes_or_no(file):
-        yes = {'yes', 'y', ''}
-        no = {'no', 'n'}
-        while True:
-            choice = input(f'Include file \'{file}\': ').lower()
-            if choice in yes:
-                return True
-            elif choice in no:
-                return False
-            else:
-                logging.error('Please respond with \'y\' or \'n\'')
-
     # If our source file audio stream is not a 2-channel stereo layout, we need to resample it before normalization
     def apply_audio_resampling(self, audio_filters):
         channels = int(self.audio_format['streams'][0].get('channels', 2))
