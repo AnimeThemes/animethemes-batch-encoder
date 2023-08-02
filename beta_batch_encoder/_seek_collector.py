@@ -27,8 +27,8 @@ class SeekCollector:
         and SeekCollector.start_positions in [len(x.split(',')), 0]
 
     validate_output_name = lambda _, x: \
-        len(x.strip()) == 0 \
-        or all(SeekCollector.filename_pattern.match(y) and not y.strip() in SeekCollector.all_output_names for y in x.split(',')) \
+        len(x.strip()) > 0 \
+        and all(SeekCollector.filename_pattern.match(y) and not y.strip() in SeekCollector.all_output_names for y in x.split(',')) \
         and SeekCollector.start_positions == len(x.split(',')) 
 
     def __init__(self, source_file):
@@ -43,7 +43,7 @@ class SeekCollector:
     # For ending positions, a blank input value is the end position of the source file
     @staticmethod
     def prompt_time(prompt_text):
-        positions = Interface.prompt_text(prompt_text, validate=SeekCollector.validate_seek).split(',')
+        positions = Interface.prompt_time(prompt_text, validate=SeekCollector.validate_seek).split(',')
         if prompt_text == 'Start time(s)':
             SeekCollector.start_positions = len(positions)
 

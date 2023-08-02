@@ -1,6 +1,7 @@
 import inquirer
 import logging
 import re
+import sys
 
 class Interface:
     # Time Duration Specification: https://ffmpeg.org/ffmpeg-utils.html#time-duration-syntax
@@ -16,14 +17,20 @@ class Interface:
         question = [inquirer.Text('text', message=message, validate=validate)]
         answer = inquirer.prompt(question)
 
+        if answer is None:
+            return 'NoName'
+
         logging.debug(f'[Interface.prompt_text] answer["text"]: \'{answer["text"]}\'')
 
         return answer['text']
     
     # Prompt the user for time questions
-    def prompt_time(message):
-        question = [inquirer.Text('time', message=message, validate=Interface.validate_time)]
+    def prompt_time(message, validate=validate_time):
+        question = [inquirer.Text('time', message=message, validate=validate)]
         answer = inquirer.prompt(question)
+
+        if answer is None:
+            return ''
 
         logging.debug(f'[Interface.prompt_time] answer["time"]: \'{answer["time"]}\'')
 
@@ -35,6 +42,9 @@ class Interface:
         question = [inquirer.List('mode', message='Mode (Enter)', choices=modes)]
         answer = inquirer.prompt(question)
 
+        if answer is None:
+            sys.exit()
+
         logging.debug(f'[Interface.choose_mode] answer["mode"]: \'{answer["mode"]}\'')
 
         return answer['mode']
@@ -43,6 +53,13 @@ class Interface:
     def choose_source_files(source_files):
         question = [inquirer.Checkbox('source_files', message='Source Files (Space to select)', choices=source_files)]
         answer = inquirer.prompt(question)
+
+        if answer is None:
+            sys.exit()
+
+        if len(answer['source_files']) == 0:
+            logging.error('Select at least one file')
+            sys.exit()
 
         logging.debug(f'[Interface.choose_source_files] answer["source_files"]: \'{answer["source_files"]}\'')
 
@@ -69,7 +86,10 @@ class Interface:
             question = [inquirer.List('audio_filters', message='Audio Filters (Enter)', choices=list(audio_filters.keys()))]
             answer = inquirer.prompt(question)
 
-            if answer['audio_filters'] == 'Fade In':
+            if answer is None:
+                audio_filters['Exit'] = True
+
+            elif answer['audio_filters'] == 'Fade In':
                 audio_filters['Fade In'] = Interface.prompt_time('Exponential Value').strip() or '0'
 
             elif answer['audio_filters'] == 'Fade Out':
@@ -113,7 +133,7 @@ class Interface:
     # Prompt the user for our list of video filters
     def video_filters(encoding_config):
         video_filters_options = {
-            'No Filters': 'no-vf',
+            'No Filters': None,
             'scale=-1:720': '720p',
             'scale=-1:720,hqdn3d=0:0:3:3,gradfun,unsharp': 'filtered-720p',
             'hqdn3d=0:0:3:3,gradfun,unsharp': 'filtered',
@@ -124,11 +144,14 @@ class Interface:
         }
         
         if encoding_config.include_unfiltered:
-            encoding_config.video_filters.append(('no-vf', 'No Filters'))
+            encoding_config.video_filters.append((None, 'No Filters'))
 
         question = [inquirer.Checkbox('video_filters', message='Select Video Filters (Space to select)',
                                       choices=video_filters_options.keys(), default=[tp[1] for tp in encoding_config.video_filters])]
         answer = inquirer.prompt(question)
+
+        if answer is None:
+            return encoding_config
 
         tp_list = [(name, filter_string) for filter_string, name in video_filters_options.items() if filter_string in answer['video_filters']]
 
@@ -158,6 +181,9 @@ class Interface:
         ]
 
         answer = inquirer.prompt(questions)
+
+        if answer is None:
+            return encoding_config
 
         encoding_config.create_preview = answer['create_preview']
         encoding_config.limit_size_enable = answer['limit_size_enable']
