@@ -1,3 +1,4 @@
+from ._interface import Interface
 from ._seek import Seek
 from ._utils import string_to_seconds
 
@@ -15,58 +16,58 @@ class SeekCollector:
     # Examples: Tamayura-OP1, PlanetWith-ED1v2
     filename_pattern = re.compile('^[a-zA-Z0-9\-]+$')
 
-    # List for all output_files
+    # Lists for integrity tests
     all_output_names = []
+    start_positions = 0
+
+    # Validations for our prompts
+    validate_seek = lambda _, x: \
+        len(x.strip()) == 0 \
+        or all(SeekCollector.time_pattern.match(y) for y in x.split(',')) \
+        and SeekCollector.start_positions in [len(x.split(',')), 0]
+
+    validate_output_name = lambda _, x: \
+        len(x.strip()) > 0 \
+        and all(SeekCollector.filename_pattern.match(y) and not y.strip() in SeekCollector.all_output_names for y in x.split(',')) \
+        and SeekCollector.start_positions == len(x.split(',')) 
 
     def __init__(self, source_file):
         self.source_file = source_file
-        self.start_positions = SeekCollector.prompt_time('Start time(s): ')
-        self.end_positions = SeekCollector.prompt_time('End time(s): ')
+        self.start_positions = SeekCollector.prompt_time('Start time(s)')
+        self.end_positions = SeekCollector.prompt_time('End time(s)')
         self.output_names = SeekCollector.prompt_output_name()
-        self.new_audio_filters = SeekCollector.prompt_new_audio_filters()
+        self.new_audio_filters = SeekCollector.prompt_new_audio_filters(self)
 
     # Prompt the user for our list of starting/ending positions of our WebMs
     # For starting positions, a blank input value is the 0 position of the source file
     # For ending positions, a blank input value is the end position of the source file
     @staticmethod
     def prompt_time(prompt_text):
-        while True:
-            invalid_time = False
-            positions = input(prompt_text).split(',')
-            for position in positions:
-                if len(position) > 0 and not SeekCollector.time_pattern.match(position):
-                    logging.error(f'\'{position}\' is not a valid time duration')
-                    invalid_time = True
-                    break
-            if not invalid_time:
-                return positions
+        positions = Interface.prompt_time(prompt_text, validate=SeekCollector.validate_seek).split(',')
+        if prompt_text == 'Start time(s)':
+            SeekCollector.start_positions = len(positions)
+
+        return positions
 
     # Prompt the user for our list of name for our passlog/WebMs
     @staticmethod
     def prompt_output_name():
-        while True:
-            invalid_name = False
-            filenames = input('Output file name(s): ').split(',')
-            for filename in filenames:
-                if not SeekCollector.filename_pattern.match(filename):
-                    logging.error(f'\'{filename}\' is not a valid output file name')
-                    invalid_name = True
-                    break
-            if not invalid_name:
-                return filenames
+        filenames = Interface.prompt_text(message='Output file name(s)', validate=SeekCollector.validate_output_name).split(',')
+        SeekCollector.all_output_names.extend(filenames)
+        SeekCollector.start_positions = 0
+         
+        return filenames
           
     # Prompt the user for ours list of audio filters of ours WebMs
     @staticmethod
-    def prompt_new_audio_filters():
-        new_audio_filters = input('Audio Filter(s): ').split(',,')
-        return new_audio_filters
+    def prompt_new_audio_filters(self):
+        new_audio_filters = []
+        for output_name in self.output_names:
+            new_audio_filters.append(Interface.audio_filters_options(output_name))
 
-    # Integrity Test 1: Our lists should be of equal length
-    def is_length_consistent(self):
-        length = len(self.start_positions)
-        return all(len(lst) == length for lst in [self.end_positions, self.output_names])
+        return new_audio_filters       
 
-    # Integrity Test 2: Positions should be within source file duration
+    # Integrity Test 1: Positions should be within source file duration
     def is_within_source_duration(self):
         source_file_duration = float(self.source_file.file_format['format']['duration'])
 
@@ -84,7 +85,7 @@ class SeekCollector:
 
         return True
 
-    # Integrity Test 3: Start position is before end position
+    # Integrity Test 2: Start position is before end position
     def is_start_before_end(self):
         source_file_duration = float(self.source_file.file_format['format']['duration'])
         for start_position, end_position in zip(self.start_positions, self.end_positions):
@@ -101,31 +102,9 @@ class SeekCollector:
 
         return True
 
-    # Integrity Test 4: Unique output names
-    def is_unique_output_names(self):
-        logging.debug(
-            f'[SeekCollector.is_unique_output_names] len(set): \'{len(set(self.output_names))}\', '
-            f'len: \'{len(self.output_names)}\'')
-
-        return len(set(self.output_names)) == len(self.output_names)
-
-    # Integrity Test 5: Unique output names in other source
-    def is_unique_output_names_other_source(self):
-        self.all_output_names.extend(self.output_names)
-
-        logging.debug(
-            f'[SeekCollector.is_unique_output_names_other_source] len(set): \'{len(set(self.all_output_names))}\', '
-            f'len: \'{len(self.all_output_names)}\'')
-        
-        return len(set(self.all_output_names)) == len(self.all_output_names)
-
     # Integrity Tests with feedback
     def is_valid(self):
         is_valid = True
-
-        if not self.is_length_consistent():
-            is_valid = False
-            logging.error('Collection not of equal length')
 
         if not self.is_within_source_duration():
             is_valid = False
@@ -135,16 +114,9 @@ class SeekCollector:
             is_valid = False
             logging.error('Start Position is not before End Position')
 
-        if not self.is_unique_output_names():
-            is_valid = False
-            logging.error('Output Names are not unique')
-
-        if not self.is_unique_output_names_other_source():
-            is_valid = False
-            logging.error('Output Name is already being used')
-
         if not is_valid:
-            self.all_output_names.pop()
+            SeekCollector.all_output_names.clear()
+            SeekCollector.start_positions = 0
 
         return is_valid
 
