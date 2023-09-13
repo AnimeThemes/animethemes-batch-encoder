@@ -6,8 +6,8 @@ with open('README.md') as f:
     long_description = f.read()
 
 setup(
-    name='animethemes-beta-batch-encoder',
-    version='1.4.1',
+    name='animethemes-batch-encoder',
+    version='2.0',
     author='AnimeThemes',
     author_email='admin@animethemes.moe',
     url='https://github.com/AnimeThemes/animethemes-batch-encoder',

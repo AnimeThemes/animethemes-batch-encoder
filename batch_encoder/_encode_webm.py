@@ -179,6 +179,9 @@ class EncodeWebM:
     def get_commands(self, encoding_config):
         file_commands = []
 
+        if len(encoding_config.video_filters) == 0:
+            encoding_config.video_filters.append((None, 'No Filters'))
+
         logging.debug(
             f'[EncodeWebm.get_commands] encoding_modes: \'{encoding_config.encoding_modes}\', '
             f'crfs: \'{encoding_config.crfs}\', '

@@ -19,7 +19,7 @@ import sys
 
 def main():
     # Load/Validate Arguments
-    parser = argparse.ArgumentParser(prog='beta_batch_encoder',
+    parser = argparse.ArgumentParser(prog='batch_encoder',
                                      description='Generate/Execute FFmpeg commands for files in acting directory',
                                      formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('--generate', '-g', action='store_true', help='Generate commands and write to file')
@@ -29,8 +29,8 @@ def main():
                         help='1: Name of file commands are written to (default: commands.txt)\n'
                              '2: Name of file commands are executed from (default: commands.txt)\n'
                              '3: Name of file commands are written to (default: commands.txt)')
-    parser.add_argument('--configfile', nargs='?', default='beta_batch_encoder.ini', type=configfile_arg_type,
-                        help='Name of config file (default: beta_batch_encoder.ini)\n'
+    parser.add_argument('--configfile', nargs='?', default='batch_encoder.ini', type=configfile_arg_type,
+                        help='Name of config file (default: batch_encoder.ini)\n'
                              'If the file does not exist, default configuration will be written\n'
                              'The file is expected to exist in the same directory as this script')
     parser.add_argument('--loglevel', nargs='?', default='info', choices=['debug', 'info', 'error'],
@@ -52,7 +52,7 @@ def main():
 
     # Write default config file if it doesn't exist
     config = configparser.ConfigParser()
-    dirs = AppDirs('beta_batch_encoder', 'AnimeThemes')
+    dirs = AppDirs('batch_encoder', 'AnimeThemes')
     config_file = os.path.join(dirs.user_config_dir, args.configfile)
     if not os.path.exists(config_file):
         config['Encoding'] = {EncodingConfig.config_allowed_filetypes: EncodingConfig.default_allowed_filetypes,

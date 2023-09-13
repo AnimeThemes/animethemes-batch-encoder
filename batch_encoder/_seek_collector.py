@@ -114,6 +114,10 @@ class SeekCollector:
             is_valid = False
             logging.error('Start Position is not before End Position')
 
+        if not is_valid:
+            SeekCollector.all_output_names.clear()
+            SeekCollector.start_positions = 0
+
         return is_valid
 
     # Our list of positions, validated if called after is_valid

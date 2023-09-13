@@ -15,11 +15,11 @@ Ideally we are iterating over a combination of filters and settings, picking the
 
 **Install:**
 
-    pip install animethemes-beta-batch-encoder
+    pip install animethemes-batch-encoder
 
 ### Usage
 
-        python -m beta_batch_encoder [-h] [--generate | -g] [--execute | -e] [--custom | -c] [--file [FILE]] [--configfile [CONFIGFILE]] --loglevel [{debug,info,error}]
+        python -m batch_encoder [-h] [--generate | -g] [--execute | -e] [--custom | -c] [--file [FILE]] [--configfile [CONFIGFILE]] --loglevel [{debug,info,error}]
 
 **Mode**
 
@@ -49,9 +49,9 @@ By default, the program will write to or read from `commands.txt` in the current
 
 The configuration file in which our encoding properties are defined.
 
-By default, the program will write to or read from `beta_batch_encoder.ini` in the user config directory of appname `beta_batch_encoder` and author `AnimeThemes`.
+By default, the program will write to or read from `batch_encoder.ini` in the user config directory of appname `batch_encoder` and author `AnimeThemes`.
 
-Example: `C:\Users\Kyrch\AppData\Local\AnimeThemes\beta_batch_encoder\beta_batch_encoder.ini`
+Example: `C:\Users\Kyrch\AppData\Local\AnimeThemes\batch_encoder\batch_encoder.ini`
 
 **Audio Filters**
 
