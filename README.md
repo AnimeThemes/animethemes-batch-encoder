@@ -53,6 +53,10 @@ By default, the program will write to or read from `batch_encoder.ini` in the us
 
 Example: `C:\Users\Kyrch\AppData\Local\AnimeThemes\batch_encoder\batch_encoder.ini`
 
+**Input File**
+
+`--inputfile` will give the option to insert input files in advance, separated by two commas. Example: `python -m batch_encoder -g --inputfile 'source file.mkv,,source file 2.mkv'`.
+
 **Audio Filters**
 
 * `Exit` Saves audio filters if selected and continues script execution.
