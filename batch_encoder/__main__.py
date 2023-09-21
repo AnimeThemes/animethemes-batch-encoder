@@ -33,6 +33,7 @@ def main():
                         help='Name of config file (default: batch_encoder.ini)\n'
                              'If the file does not exist, default configuration will be written\n'
                              'The file is expected to exist in the same directory as this script')
+    parser.add_argument('--inputfile', nargs='?', help='Set the input files separated by two commas')
     parser.add_argument('--loglevel', nargs='?', default='info', choices=['debug', 'info', 'error'],
                         help='Set logging level')
     args = parser.parse_args()
@@ -89,19 +90,23 @@ def main():
 
     # Generate commands from source file candidates in current directory
     if mode == 1 or mode == 3:
-        source_file_candidates = [f for f in os.listdir('.') if f.endswith(tuple(encoding_config.allowed_filetypes))]
+        if args.inputfile is None:
+            source_file_candidates = [f for f in os.listdir('.') if f.endswith(tuple(encoding_config.allowed_filetypes))]
 
-        if not source_file_candidates:
-            logging.error('No source file candidates in current directory')
-            sys.exit()
+            if not source_file_candidates:
+                logging.error('No source file candidates in current directory')
+                sys.exit()
 
-        source_file_candidates = Interface.choose_source_files(source_file_candidates)
-        source_file = {}
+            source_files = Interface.choose_source_files(source_file_candidates)
+        else:
+            source_files = args.inputfile.split(',,')
 
-        for source_file_candidate in source_file_candidates:
-            source_file[source_file_candidate] = SourceFile.from_file(source_file_candidate, encoding_config)
+        source_file_info = {}
 
-        for file, file_value in source_file.items():
+        for source_file in source_files:
+            source_file_info[source_file] = SourceFile.from_file(source_file, encoding_config)
+
+        for file, file_value in source_file_info.items():
             try:
                 is_collector_valid = False
                 seek_collector = None
