@@ -1,3 +1,5 @@
+from ._bitrate_mode import BitrateMode
+
 import inquirer
 import logging
 import re
@@ -9,13 +11,12 @@ class Interface:
 
     # Validations
     validate_time = lambda _, x: all(Interface.time_pattern.match(y) for y in x.split(','))
-    validate_crfs = lambda _, x: all(y.strip().isdigit() for y in x.split(','))
-    validate_encoding_modes = lambda _, x: all(y.strip().upper() in ['VBR', 'CBR', 'CQ'] for y in x.split(','))
+    validate_encoding_modes = lambda _, x: all(y.strip().upper() in [BitrateMode.VBR.name, BitrateMode.CBR.name, BitrateMode.CQ.name] for y in x.split(','))
+    validate_digits = lambda _, x: all(y.strip().isdigit() for y in x.split(',')) or len(x.strip()) == 0
 
     # Prompt the user for text questions
     def prompt_text(message, validate=lambda _, x: x):
-        question = [inquirer.Text('text', message=message, validate=validate)]
-        answer = inquirer.prompt(question)
+        answer = inquirer.prompt([inquirer.Text('text', message=message, validate=validate)])
 
         if answer is None:
             return 'NoName'
@@ -26,8 +27,7 @@ class Interface:
     
     # Prompt the user for time questions
     def prompt_time(message, validate=validate_time):
-        question = [inquirer.Text('time', message=message, validate=validate)]
-        answer = inquirer.prompt(question)
+        answer = inquirer.prompt([inquirer.Text('time', message=message, validate=validate)])
 
         if answer is None:
             return ''
@@ -39,8 +39,7 @@ class Interface:
     # Prompt the user for our mode options to run to the user
     def choose_mode():
         modes = [('Generate commands', 1), ('Execute commands', 2), ('Generate and execute commands', 3)]
-        question = [inquirer.List('mode', message='Mode (Enter)', choices=modes)]
-        answer = inquirer.prompt(question)
+        answer = inquirer.prompt([inquirer.List('mode', message='Mode (Enter)', choices=modes)])
 
         if answer is None:
             sys.exit()
@@ -51,8 +50,7 @@ class Interface:
     
     # Prompt the user for source files to choose
     def choose_source_files(source_files):
-        question = [inquirer.Checkbox('source_files', message='Source Files (Space to select)', choices=source_files)]
-        answer = inquirer.prompt(question)
+        answer = inquirer.prompt([inquirer.Checkbox('source_files', message='Source Files (Space to select)', choices=source_files)])
 
         if answer is None:
             sys.exit()
@@ -83,8 +81,7 @@ class Interface:
 
         while not audio_filters['Exit']:
             print(f'\n\033[92mOutput Name: {output_name}\033[0m')
-            question = [inquirer.List('audio_filters', message='Audio Filters (Enter)', choices=list(audio_filters.keys()))]
-            answer = inquirer.prompt(question)
+            answer = inquirer.prompt([inquirer.List('audio_filters', message='Audio Filters (Enter)', choices=list(audio_filters.keys()))])
 
             if answer is None:
                 audio_filters['Exit'] = True
@@ -146,9 +143,10 @@ class Interface:
         if encoding_config.include_unfiltered:
             encoding_config.video_filters.append((None, 'No Filters'))
 
-        question = [inquirer.Checkbox('video_filters', message='Select Video Filters (Space to select)',
-                                      choices=video_filters_options.keys(), default=[tp[1] for tp in encoding_config.video_filters])]
-        answer = inquirer.prompt(question)
+        answer = inquirer.prompt([
+            inquirer.Checkbox('video_filters', message='Select Video Filters (Space to select)',
+                            choices=video_filters_options.keys(), default=[tp[1] for tp in encoding_config.video_filters])
+        ])
 
         if answer is None:
             return encoding_config
@@ -170,32 +168,48 @@ class Interface:
     def custom_options(encoding_config):
         create_preview = encoding_config.create_preview
         limit_size_enable = encoding_config.limit_size_enable
-        crfs = encoding_config.crfs
         encoding_modes = encoding_config.encoding_modes
+        crfs = encoding_config.crfs
+        cbr_bitrates = encoding_config.cbr_bitrates
+        cbr_max_bitrates = encoding_config.cbr_max_bitrates
 
-        questions = [
-            inquirer.Confirm('create_preview', message=f'Create Preview?', default=create_preview),
-            inquirer.Confirm('limit_size_enable', message=f'Limit Size Enable?', default=limit_size_enable),
-            inquirer.Text('crfs', message='CRFs', default=','.join(crfs), validate=Interface.validate_crfs),
-            inquirer.Text('encoding_modes', message='Encoding Modes', default=','.join(encoding_modes), validate=Interface.validate_encoding_modes)
-        ]
-
-        answer = inquirer.prompt(questions)
+        answer = inquirer.prompt([
+            inquirer.Confirm('create_preview', message='Create Preview?', default=create_preview),
+            inquirer.Confirm('limit_size_enable', message='Limit Size Enable?', default=limit_size_enable),
+            inquirer.Text('encoding_modes', message='Encoding Modes', default=','.join(encoding_modes), validate=Interface.validate_encoding_modes),
+        ])
 
         if answer is None:
             return encoding_config
+        
+        encoding_mode_questions = []
+        for encoding_mode in answer['encoding_modes'].split(','):
+            if encoding_mode == BitrateMode.VBR.name or encoding_mode == BitrateMode.CQ.name:
+                encoding_mode_questions.append(inquirer.Text('crfs', message='CRFs', default=','.join(crfs), validate=Interface.validate_digits))
+            if encoding_mode == BitrateMode.CBR.name:
+                encoding_mode_questions.append(inquirer.Text('cbr_bitrates', message='Bit Rates', default=','.join(cbr_bitrates), validate=Interface.validate_digits))
+                encoding_mode_questions.append(inquirer.Text('cbr_max_bitrates', message='Max Bit Rates', default=','.join(cbr_max_bitrates), validate=Interface.validate_digits))
+
+        answer_em = inquirer.prompt(encoding_mode_questions)
 
         encoding_config.create_preview = answer['create_preview']
         encoding_config.limit_size_enable = answer['limit_size_enable']
-        encoding_config.crfs = answer['crfs'].split(',')
         encoding_config.encoding_modes = answer['encoding_modes'].split(',')
+
+        if 'crfs' in answer_em:
+            encoding_config.crfs = answer_em['crfs'].split(',')
+        if 'cbr_bitrates' in answer_em and 'cbr_max_bitrates' in answer_em:
+            encoding_config.cbr_bitrates = [x + 'k' for x in answer_em['cbr_bitrates'].split(',')] if len(answer_em['cbr_bitrates'].strip()) != 0 else None
+            encoding_config.cbr_max_bitrates = [x + 'k' for x in answer_em['cbr_max_bitrates'].split(',')] if len(answer_em['cbr_max_bitrates'].strip()) != 0 else None
 
         logging.debug(
             f'[Interface.custom_options] '
             f'encoding_config.create_preview: \'{encoding_config.create_preview}\', '
             f'encoding_config.limit_size_enable: \'{encoding_config.create_preview}\', '
+            f'encoding_config.encoding_modes: \'{encoding_config.encoding_modes}\', '
             f'encoding_config.crfs: \'{encoding_config.crfs}\', '
-            f'encoding_config.encoding_modes: \'{encoding_config.encoding_modes}\''
+            f'encoding_config.cbr_bitrates: \'{encoding_config.cbr_bitrates}\', '
+            f'encoding_config.cbr_max_bitrates: \'{encoding_config.cbr_max_bitrates}\''
         )
 
         return encoding_config
