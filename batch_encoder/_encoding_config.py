@@ -6,6 +6,8 @@ class EncodingConfig:
     config_allowed_filetypes = 'AllowedFileTypes'
     config_encoding_modes = 'EncodingModes'
     config_crfs = 'CRFs'
+    config_cbr_bitrates = 'CBRBitrates'
+    config_cbr_max_bitrates = 'CBRMaxBitrates'
     config_threads = 'Threads'
     config_limit_size_enable = 'LimitSizeEnable'
     config_alternate_source_files = 'AlternateSourceFiles'
@@ -20,6 +22,8 @@ class EncodingConfig:
     default_allowed_filetypes = '.avi,.m2ts,.mkv,.mp4,.wmv'
     default_encoding_modes = f'{BitrateMode.VBR.name},{BitrateMode.CBR.name}'
     default_crfs = '12,15,18,21,24'
+    default_cbr_bitrates = '5600'
+    default_cbr_max_bitrates  = '6400'
     default_threads = '4'
     default_limit_size_enable = True
     default_alternate_source_files = False
@@ -30,11 +34,13 @@ class EncodingConfig:
                              'heavydenoise': 'hqdn3d=1.5:1.5:6:6',
                              'unsharp': 'unsharp'}
 
-    def __init__(self, allowed_filetypes, encoding_modes, crfs, threads, limit_size_enable, alternate_source_files, create_preview, include_unfiltered, video_filters, default_video_stream,
+    def __init__(self, allowed_filetypes, encoding_modes, crfs, cbr_bitrates, cbr_max_bitrates, threads, limit_size_enable, alternate_source_files, create_preview, include_unfiltered, video_filters, default_video_stream,
                  default_audio_stream):
         self.allowed_filetypes = allowed_filetypes
         self.encoding_modes = encoding_modes
         self.crfs = crfs
+        self.cbr_bitrates = cbr_bitrates
+        self.cbr_max_bitrates = cbr_max_bitrates
         self.threads = threads
         self.limit_size_enable = limit_size_enable
         self.alternate_source_files = alternate_source_files
@@ -51,6 +57,8 @@ class EncodingConfig:
         encoding_modes = config['Encoding'].get(EncodingConfig.config_encoding_modes,
                                                 EncodingConfig.default_encoding_modes).split(',')
         crfs = config['Encoding'].get(EncodingConfig.config_crfs, EncodingConfig.default_crfs).split(',')
+        cbr_bitrates = config['Encoding'].get(EncodingConfig.config_cbr_bitrates, EncodingConfig.default_cbr_bitrates).split(',')
+        cbr_max_bitrates = config['Encoding'].get(EncodingConfig.config_cbr_max_bitrates, EncodingConfig.default_cbr_max_bitrates).split(',')
         threads = config['Encoding'].get(EncodingConfig.config_threads,
                                          EncodingConfig.default_threads)
         limit_size_enable = config.getboolean('Encoding', EncodingConfig.config_limit_size_enable, fallback=EncodingConfig.default_limit_size_enable)
@@ -63,7 +71,7 @@ class EncodingConfig:
         default_video_stream = config['Encoding'].get(EncodingConfig.config_default_video_stream)
         default_audio_stream = config['Encoding'].get(EncodingConfig.config_default_audio_stream)
 
-        return cls(allowed_filetypes, encoding_modes, crfs, threads, limit_size_enable, alternate_source_files, create_preview, include_unfiltered, video_filters, default_video_stream,
+        return cls(allowed_filetypes, encoding_modes, crfs, cbr_bitrates, cbr_max_bitrates, threads, limit_size_enable, alternate_source_files, create_preview, include_unfiltered, video_filters, default_video_stream,
                    default_audio_stream)
 
     def get_default_stream(self, stream_type):

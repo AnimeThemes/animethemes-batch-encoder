@@ -19,7 +19,7 @@ Ideally we are iterating over a combination of filters and settings, picking the
 
 ### Usage
 
-        python -m batch_encoder [-h] [--generate | -g] [--execute | -e] [--custom | -c] [--file [FILE]] [--configfile [CONFIGFILE]] --loglevel [{debug,info,error}]
+        python -m batch_encoder [-h] [--generate | -g] [--execute | -e] [--custom | -c] [--file [FILE]] [--configfile [CONFIGFILE]] [--inputfile [INPUTFILES]] --loglevel [{debug,info,error}]
 
 **Mode**
 
@@ -89,6 +89,10 @@ Available bitrate control modes are:
 * `CQ` Constrained Quality Mode
 
 `CRFs` is a comma-separated listing of ordered CRF values to use with `VBR` and/or `CQ` bitrate control modes.
+
+`CBRBitrates` is comma-separated listing of ordered bitrate values to use with `CBR`.
+
+`CBRMaxBitrates` is comma-separated listing of ordered maximum bitrate values to use with `CBR`.
 
 `Threads` is the number of threads used to encode. Default is 4.
 

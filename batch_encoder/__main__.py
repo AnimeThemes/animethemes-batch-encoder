@@ -59,6 +59,8 @@ def main():
         config['Encoding'] = {EncodingConfig.config_allowed_filetypes: EncodingConfig.default_allowed_filetypes,
                               EncodingConfig.config_encoding_modes: EncodingConfig.default_encoding_modes,
                               EncodingConfig.config_crfs: EncodingConfig.default_crfs,
+                              EncodingConfig.config_cbr_bitrates: EncodingConfig.default_cbr_bitrates,
+                              EncodingConfig.config_cbr_max_bitrates: EncodingConfig.default_cbr_max_bitrates,
                               EncodingConfig.config_threads: EncodingConfig.default_threads,
                               EncodingConfig.config_limit_size_enable: EncodingConfig.default_limit_size_enable,
                               EncodingConfig.config_alternate_source_files: EncodingConfig.default_alternate_source_files,
