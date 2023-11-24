@@ -1,16 +1,20 @@
+from ._audio_filter import AudioFilter
 from ._bitrate_mode import BitrateMode
+from ._video_filter import VideoFilter
 
 import inquirer
 import logging
 import re
 import sys
 
-class Interface:
+
+# Use the inquirer lib to create a CLI
+class CLI:
     # Time Duration Specification: https://ffmpeg.org/ffmpeg-utils.html#time-duration-syntax
     time_pattern = re.compile('^([0-5]?\d:){1,2}[0-5]?\d(?=\.\d+$|$)|\d+(?=\.\d+$|$)')
 
     # Validations
-    validate_time = lambda _, x: all(Interface.time_pattern.match(y) for y in x.split(','))
+    validate_time = lambda _, x: all(CLI.time_pattern.match(y) for y in x.split(','))
     validate_encoding_modes = lambda _, x: all(y.strip().upper() in [BitrateMode.VBR.name, BitrateMode.CBR.name, BitrateMode.CQ.name] for y in x.split(','))
     validate_digits = lambda _, x: all(y.strip().isdigit() for y in x.split(',')) or len(x.strip()) == 0
 
@@ -21,7 +25,7 @@ class Interface:
         if answer is None:
             return 'NoName'
 
-        logging.debug(f'[Interface.prompt_text] answer["text"]: \'{answer["text"]}\'')
+        logging.debug(f'[CLI.prompt_text] answer["text"]: \'{answer["text"]}\'')
 
         return answer['text']
     
@@ -32,7 +36,7 @@ class Interface:
         if answer is None:
             return ''
 
-        logging.debug(f'[Interface.prompt_time] answer["time"]: \'{answer["time"]}\'')
+        logging.debug(f'[CLI.prompt_time] answer["time"]: \'{answer["time"]}\'')
 
         return answer['time']
 
@@ -44,7 +48,7 @@ class Interface:
         if answer is None:
             sys.exit()
 
-        logging.debug(f'[Interface.choose_mode] answer["mode"]: \'{answer["mode"]}\'')
+        logging.debug(f'[CLI.choose_mode] answer["mode"]: \'{answer["mode"]}\'')
 
         return answer['mode']
     
@@ -59,86 +63,71 @@ class Interface:
             logging.error('Select at least one file')
             sys.exit()
 
-        logging.debug(f'[Interface.choose_source_files] answer["source_files"]: \'{answer["source_files"]}\'')
+        logging.debug(f'[CLI.choose_source_files] answer["source_files"]: \'{answer["source_files"]}\'')
 
         return answer['source_files']
       
     # Prompt the user for audio filters options
     def audio_filters_options(output_name):
-        audio_filters = {
-            'Exit': False,
-            'Custom': '',
-            'Fade In': 0,
-            'Fade Out': {
-                'Start Time': 0,
-                'Exp': 0
-            },
-            'Mute': {
-                'Start Time': 0,
-                'End Time': 0
-            } 
-        }
-
-        while not audio_filters['Exit']:
-            print(f'\n\033[92mOutput Name: {output_name}\033[0m')
-            answer = inquirer.prompt([inquirer.List('audio_filters', message='Audio Filters (Enter)', choices=list(audio_filters.keys()))])
-
-            if answer is None:
-                audio_filters['Exit'] = True
-
-            elif answer['audio_filters'] == 'Fade In':
-                audio_filters['Fade In'] = Interface.prompt_time('Exponential Value').strip() or '0'
-
-            elif answer['audio_filters'] == 'Fade Out':
-                audio_filters['Fade Out']['Start Time'] = Interface.prompt_time('Start Time').strip() or '0'
-                audio_filters['Fade Out']['Exp'] = Interface.prompt_time('Exponential Value').strip() or '0'
-                     
-            elif answer['audio_filters'] == 'Mute':
-                audio_filters['Mute']['Start Time'] = Interface.prompt_time('Start Time').strip() or '0'
-                audio_filters['Mute']['End Time'] = Interface.prompt_time('End Time').strip() or '0'
-
-            elif answer['audio_filters'] == 'Custom':
-                custom_audio_filter = Interface.prompt_text('Custom Audio Filter(s)').strip()
-                audio_filters['Custom'] = custom_audio_filter
-
-            else:
-                audio_filters['Exit'] = True
-
-        audio_filters_list = []
-
-        if float(audio_filters['Fade In']) > 0:
-            audio_filters_list.append(f"afade=d={audio_filters['Fade In']}:curve=exp")
-        if float(audio_filters['Fade Out']['Exp']) > 0:
-            audio_filters_list.append(f"afade=t=out:st={audio_filters['Fade Out']['Start Time']}:d={audio_filters['Fade Out']['Exp']}")
-        if float(audio_filters['Mute']['Start Time']) > 0 or float(audio_filters['Mute']['End Time']) > 0:
-            audio_filters_list.append(f"volume=enable='between(t,{audio_filters['Mute']['Start Time']},{audio_filters['Mute']['End Time']})':volume=0")
-        if len(audio_filters['Custom']) > 0:
-            audio_filters_list.append(audio_filters['Custom'])
-
-        logging.debug(
-            f'[Interface.audio_filters_options] '
-            f'audio_filters["Fade In"]: \'{audio_filters["Fade In"]}\', '
-            f'audio_filters["Fade Out"]["Start Time"]: \'{audio_filters["Fade Out"]["Start Time"]}\', '
-            f'audio_filters["Fade Out"]["Exp"]: \'{audio_filters["Fade Out"]["Exp"]}\', '
-            f'audio_filters["Mute"]["Start Time"]: \'{audio_filters["Mute"]["Start Time"]}\', '
-            f'audio_filters["Mute"]["End Time"]: \'{audio_filters["Mute"]["End Time"]}\', '
-            f'audio_filters["Custom"]: \'{audio_filters["Custom"]}\''
+        af = AudioFilter.get_obj()
+        fadein, fadeout, mute, custom = (
+            AudioFilter.FADE_IN._value_[0],
+            AudioFilter.FADE_OUT._value_[0],
+            AudioFilter.MUTE._value_[0],
+            AudioFilter.CUSTOM._value_[0]
         )
 
-        return ','.join(audio_filters_list)
+        while not af['Exit']:
+            print(f'\n\033[92mOutput Name: {output_name}\033[0m')
+            answer = inquirer.prompt([inquirer.List('af', message='Audio Filters (Enter)', choices=list(af.keys()))])
+
+            if answer is None:
+                af['Exit'] = True
+
+            elif answer['af'] == fadein:
+                af[fadein] = CLI.prompt_time('Exponential Value').strip() or '0'
+
+            elif answer['af'] == fadeout:
+                af[fadeout]['Start Time'] = CLI.prompt_time('Start Time').strip() or '0'
+                af[fadeout]['Exp'] = CLI.prompt_time('Exponential Value').strip() or '0'
+                     
+            elif answer['af'] == mute:
+                af[mute]['Start Time'] = CLI.prompt_time('Start Time').strip() or '0'
+                af[mute]['End Time'] = CLI.prompt_time('End Time').strip() or '0'
+
+            elif answer['af'] == custom:
+                custom_audio_filter = CLI.prompt_text('Custom Audio Filter(s)').strip()
+                af[custom] = custom_audio_filter
+
+            else:
+                af['Exit'] = True
+
+        af_list = []
+
+        if float(af[fadein]) > 0:
+            af_list.append(AudioFilter.FADE_IN.toText(af[fadein]))
+        if float(af[fadeout]['Exp']) > 0:
+            af_list.append(AudioFilter.FADE_OUT.toText(af[fadeout]['Start Time'], af[fadein]['Exp']))
+        if float(af[mute]['Start Time']) > 0 or float(af[mute]['End Time']) > 0:
+            af_list.append(AudioFilter.MUTE.toText(af[mute]['Start Time'], af[mute]['End Time']))
+        if len(af[custom]) > 0:
+            af_list.append(AudioFilter.CUSTOM.toText(af[custom]))
+
+        logging.debug(
+            f'[CLI.af_options] '
+            f'af[{fadein}]: \'{af[fadein]}\', '
+            f'af[{fadeout}]["Start Time"]: \'{af[fadeout]["Start Time"]}\', '
+            f'af[{fadeout}]["Exp"]: \'{af[fadeout]["Exp"]}\', '
+            f'af[{mute}]["Start Time"]: \'{af[mute]["Start Time"]}\', '
+            f'af[{mute}]["End Time"]: \'{af[mute]["End Time"]}\', '
+            f'af[{custom}]: \'{af[custom]}\''
+        )
+
+        return ','.join(af_list)
     
     # Prompt the user for our list of video filters
     def video_filters(encoding_config):
-        video_filters_options = {
-            'No Filters': None,
-            'scale=-1:720': '720p',
-            'scale=-1:720,hqdn3d=0:0:3:3,gradfun,unsharp': 'filtered-720p',
-            'hqdn3d=0:0:3:3,gradfun,unsharp': 'filtered',
-            'hqdn3d=0:0:3:3': 'lightdenoise',
-            'hqdn3d=1.5:1.5:6:6': 'heavydenoise',
-            'unsharp': 'unsharp',
-            'Custom': 'custom'
-        }
+        video_filters_options = VideoFilter.get_obj()
         
         if encoding_config.include_unfiltered:
             encoding_config.video_filters.append((None, 'No Filters'))
@@ -152,15 +141,16 @@ class Interface:
             return encoding_config
 
         tp_list = [(name, filter_string) for filter_string, name in video_filters_options.items() if filter_string in answer['video_filters']]
+        custom = VideoFilter.CUSTOM
 
-        if 'Custom' in answer['video_filters']:
-            tp_list.remove(('custom', 'Custom'))
-            custom_video_filters = Interface.prompt_text('Custom Video Filters (Separate with ",," if more than one)').split(',,')
-            tp_list.extend([(f'custom{i + 1}', value) for i, value in enumerate(custom_video_filters)])
+        if VideoFilter.CUSTOM._value_[1] in answer['video_filters']:
+            tp_list.remove((custom._value_[0], custom._value_[1]))
+            custom_video_filters = CLI.prompt_text('Custom Video Filters (Separate with ",," if more than one)').split(',,')
+            tp_list.extend([(f'{custom._value_[0]}{i + 1}', value) for i, value in enumerate(custom_video_filters)])
 
         encoding_config.video_filters = tp_list
 
-        logging.debug(f'[Interface.video_filters] tp_list: \'{tp_list}\'')
+        logging.debug(f'[CLI.video_filters] tp_list: \'{tp_list}\'')
 
         return encoding_config
 
@@ -176,7 +166,7 @@ class Interface:
         answer = inquirer.prompt([
             inquirer.Confirm('create_preview', message='Create Preview?', default=create_preview),
             inquirer.Confirm('limit_size_enable', message='Limit Size Enable?', default=limit_size_enable),
-            inquirer.Text('encoding_modes', message='Encoding Modes', default=','.join(encoding_modes), validate=Interface.validate_encoding_modes),
+            inquirer.Text('encoding_modes', message='Encoding Modes', default=','.join(encoding_modes), validate=CLI.validate_encoding_modes),
         ])
 
         if answer is None:
@@ -185,10 +175,10 @@ class Interface:
         encoding_mode_questions = []
         for encoding_mode in answer['encoding_modes'].split(','):
             if encoding_mode == BitrateMode.VBR.name or encoding_mode == BitrateMode.CQ.name:
-                encoding_mode_questions.append(inquirer.Text('crfs', message='CRFs', default=','.join(crfs), validate=Interface.validate_digits))
+                encoding_mode_questions.append(inquirer.Text('crfs', message='CRFs', default=','.join(crfs), validate=CLI.validate_digits))
             if encoding_mode == BitrateMode.CBR.name:
-                encoding_mode_questions.append(inquirer.Text('cbr_bitrates', message='Bit Rates', default=','.join(cbr_bitrates), validate=Interface.validate_digits))
-                encoding_mode_questions.append(inquirer.Text('cbr_max_bitrates', message='Max Bit Rates', default=','.join(cbr_max_bitrates), validate=Interface.validate_digits))
+                encoding_mode_questions.append(inquirer.Text('cbr_bitrates', message='Bit Rates', default=','.join(cbr_bitrates), validate=CLI.validate_digits))
+                encoding_mode_questions.append(inquirer.Text('cbr_max_bitrates', message='Max Bit Rates', default=','.join(cbr_max_bitrates), validate=CLI.validate_digits))
 
         answer_em = inquirer.prompt(encoding_mode_questions)
 
@@ -203,7 +193,7 @@ class Interface:
             encoding_config.cbr_max_bitrates = [x + 'k' for x in answer_em['cbr_max_bitrates'].split(',')] if len(answer_em['cbr_max_bitrates'].strip()) != 0 else None
 
         logging.debug(
-            f'[Interface.custom_options] '
+            f'[CLI.custom_options] '
             f'encoding_config.create_preview: \'{encoding_config.create_preview}\', '
             f'encoding_config.limit_size_enable: \'{encoding_config.create_preview}\', '
             f'encoding_config.encoding_modes: \'{encoding_config.encoding_modes}\', '

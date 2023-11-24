@@ -1,6 +1,6 @@
 from ._encode_webm import EncodeWebM
 from ._encoding_config import EncodingConfig
-from ._interface import Interface
+from ._cli import CLI
 from ._seek_collector import SeekCollector
 from ._source_file import SourceFile
 from ._utils import commandfile_arg_type
@@ -64,7 +64,7 @@ def main():
                               EncodingConfig.config_threads: EncodingConfig.default_threads,
                               EncodingConfig.config_limit_size_enable: EncodingConfig.default_limit_size_enable,
                               EncodingConfig.config_alternate_source_files: EncodingConfig.default_alternate_source_files,
-                              EncodingConfig.create_preview: EncodingConfig.default_create_preview,
+                              EncodingConfig.config_create_preview: EncodingConfig.default_create_preview,
                               EncodingConfig.config_include_unfiltered: EncodingConfig.default_include_unfiltered,
                               EncodingConfig.config_default_video_stream: '',
                               EncodingConfig.config_default_audio_stream: ''}
@@ -88,7 +88,7 @@ def main():
     elif args.execute:
         mode = 2
     else:
-        mode = Interface.choose_mode()
+        mode = CLI.choose_mode()
 
     # Generate commands from source file candidates in current directory
     if mode == 1 or mode == 3:
@@ -99,7 +99,7 @@ def main():
                 logging.error('No source file candidates in current directory')
                 sys.exit()
 
-            source_files = Interface.choose_source_files(source_file_candidates)
+            source_files = CLI.choose_source_files(source_file_candidates)
         else:
             source_files = args.inputfile.split(',,')
 
@@ -121,11 +121,11 @@ def main():
                     new_encoding_config = copy.copy(encoding_config)
 
                     print(f'\033[92mOutput Name: {seek.output_name}\033[0m')
-                    new_encoding_config = Interface.video_filters(new_encoding_config)
+                    new_encoding_config = CLI.video_filters(new_encoding_config)
 
                     if args.custom:
                         print(f'\033[92mOutput Name: {seek.output_name}\033[0m')
-                        new_encoding_config = Interface.custom_options(new_encoding_config)
+                        new_encoding_config = CLI.custom_options(new_encoding_config)
                         
                     logging.info(f'Generating commands with seek ss: \'{seek.ss}\', to: \'{seek.to}\'')
                     encode_webm = EncodeWebM(file_value, seek)

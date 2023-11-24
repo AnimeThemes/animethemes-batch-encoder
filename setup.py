@@ -7,7 +7,7 @@ with open('README.md') as f:
 
 setup(
     name='animethemes-batch-encoder',
-    version='2.2',
+    version='2.2.1',
     author='AnimeThemes',
     author_email='admin@animethemes.moe',
     url='https://github.com/AnimeThemes/animethemes-batch-encoder',

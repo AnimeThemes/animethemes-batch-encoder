@@ -1,4 +1,4 @@
-from ._interface import Interface
+from ._cli import CLI
 from ._seek import Seek
 from ._utils import string_to_seconds
 
@@ -43,7 +43,7 @@ class SeekCollector:
     # For ending positions, a blank input value is the end position of the source file
     @staticmethod
     def prompt_time(prompt_text):
-        positions = Interface.prompt_time(prompt_text, validate=SeekCollector.validate_seek).split(',')
+        positions = CLI.prompt_time(prompt_text, validate=SeekCollector.validate_seek).split(',')
         if prompt_text == 'Start time(s)':
             SeekCollector.start_positions = len(positions)
 
@@ -52,7 +52,7 @@ class SeekCollector:
     # Prompt the user for our list of name for our passlog/WebMs
     @staticmethod
     def prompt_output_name():
-        filenames = Interface.prompt_text(message='Output file name(s)', validate=SeekCollector.validate_output_name).split(',')
+        filenames = CLI.prompt_text(message='Output file name(s)', validate=SeekCollector.validate_output_name).split(',')
         SeekCollector.all_output_names.extend(filenames)
         SeekCollector.start_positions = 0
          
@@ -63,7 +63,7 @@ class SeekCollector:
     def prompt_new_audio_filters(self):
         new_audio_filters = []
         for output_name in self.output_names:
-            new_audio_filters.append(Interface.audio_filters_options(output_name))
+            new_audio_filters.append(CLI.audio_filters_options(output_name))
 
         return new_audio_filters       
 
