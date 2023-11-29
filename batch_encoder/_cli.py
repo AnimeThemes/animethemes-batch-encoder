@@ -107,7 +107,7 @@ class CLI:
         if float(af[fadein]) > 0:
             af_list.append(AudioFilter.FADE_IN.toText(af[fadein]))
         if float(af[fadeout]['Exp']) > 0:
-            af_list.append(AudioFilter.FADE_OUT.toText(af[fadeout]['Start Time'], af[fadein]['Exp']))
+            af_list.append(AudioFilter.FADE_OUT.toText(af[fadeout]['Start Time'], af[fadeout]['Exp']))
         if float(af[mute]['Start Time']) > 0 or float(af[mute]['End Time']) > 0:
             af_list.append(AudioFilter.MUTE.toText(af[mute]['Start Time'], af[mute]['End Time']))
         if len(af[custom]) > 0:
