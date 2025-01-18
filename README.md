@@ -19,7 +19,7 @@ Ideally we are iterating over a combination of filters and settings, picking the
 
 ### Usage
 
-        python -m batch_encoder [-h] [--generate | -g] [--execute | -e] [--custom | -c] [--file [FILE]] [--configfile [CONFIGFILE]] [--inputfile [INPUTFILES]] --loglevel [{debug,info,error}]
+    python -m batch_encoder [-h] [--generate | -g] [--execute | -e] [--custom | -c] [--file [FILE]] [--configfile [CONFIGFILE]] [--inputfile [INPUTFILES]] --loglevel [{debug,info,error}]
 
 **Mode**
 

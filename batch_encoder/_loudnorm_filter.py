@@ -25,7 +25,7 @@ class LoudnormFilter:
                        f'-vn -sn -dn -f null /dev/null'
         loudnorm_args = shlex.split(loudnorm_cmd)
         loudnorm_output = subprocess.check_output(loudnorm_args, stderr=subprocess.STDOUT).decode('utf-8').strip()
-        loudnorm_stats = re.search('^{[^}]*}$', loudnorm_output, re.MULTILINE)
+        loudnorm_stats = re.search(r'\{[^}]*\}', loudnorm_output, re.DOTALL)
         loudnorm_stats = json.loads(loudnorm_stats.group(0))
 
         logging.debug(
