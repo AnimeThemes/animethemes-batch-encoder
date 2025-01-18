@@ -1,6 +1,6 @@
 from ._audio_filter import AudioFilter
 from ._bitrate_mode import BitrateMode
-from ._typing import EncodingConfigType
+from ._typing import Args, EncodingConfigType
 from ._video_filter import VideoFilter
 from typing import Literal
 
@@ -43,7 +43,7 @@ class CLI:
         return answer['time']
 
     # Prompt the user for our mode options to run to the user
-    def choose_mode(args) -> Literal[1, 2, 3]:
+    def choose_mode(args: Args) -> Literal[1, 2, 3]:
         modes = [
             ('Generate commands', 1),
             ('Execute commands', 2),
