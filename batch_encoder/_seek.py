@@ -8,7 +8,7 @@ class Seek:
         self.new_audio_filter = new_audio_filter
 
     # The seek string arguments for our encode
-    def get_seek_string(self):
+    def get_seek_string(self) -> str:
         if len(self.ss) > 0 and len(self.to) > 0:
             return f'-ss {self.ss} -to {self.to} -i "{self.source_file.file}"'
         elif len(self.ss) > 0:

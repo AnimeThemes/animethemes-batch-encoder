@@ -82,7 +82,7 @@ class SourceFile:
 
     # Get the number of streams of the codec type (audio/video)
     @staticmethod
-    def get_stream_count(file_format, target_codec_type):
+    def get_stream_count(file_format, target_codec_type) -> int:
         count = 0
 
         for stream in file_format['streams']:
@@ -95,7 +95,7 @@ class SourceFile:
 
     # Validate default stream selection before prompting the user to specify which stream to use
     @staticmethod
-    def get_default_stream(file_format, stream_type, encoding_config):
+    def get_default_stream(file_format, stream_type, encoding_config) -> int|None:
         # Exit early if default stream is not set
         default_stream = encoding_config.get_default_stream(stream_type)
         if not default_stream:
@@ -115,7 +115,7 @@ class SourceFile:
     # If there exists more than one stream for a codec type (audio/video),
     # we want the user to specify which stream to use
     @staticmethod
-    def get_selected_stream(file_format, stream_type):
+    def get_selected_stream(file_format, stream_type) -> int:
         stream_count = SourceFile.get_stream_count(file_format, stream_type)
         if stream_count <= 1:
             return 0
@@ -132,7 +132,7 @@ class SourceFile:
                 logging.error('Stream selection must be an integer')
 
     # If our source file audio stream is not a 2-channel stereo layout, we need to resample it before normalization
-    def apply_audio_resampling(self, audio_filters):
+    def apply_audio_resampling(self, audio_filters) -> None:
         channels = int(self.audio_format['streams'][0].get('channels', 2))
         channel_layout = self.audio_format['streams'][0].get('channel_layout', 'stereo')
         if channels != 2 or channel_layout != 'stereo':

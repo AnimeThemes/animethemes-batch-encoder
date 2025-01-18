@@ -33,7 +33,8 @@ class LoudnormFilter:
             f'input_lra: \'{loudnorm_stats["input_lra"]}\', '
             f'input_tp: \'{loudnorm_stats["input_tp"]}\', '
             f'input_thresh: \'{loudnorm_stats["input_thresh"]}\', '
-            f'target_offset: \'{loudnorm_stats["target_offset"]}\'')
+            f'target_offset: \'{loudnorm_stats["target_offset"]}\''
+        )
 
         return cls(loudnorm_stats['input_i'],
                    loudnorm_stats['input_lra'],
@@ -42,7 +43,7 @@ class LoudnormFilter:
                    loudnorm_stats['target_offset'])
 
     # The audio normalization filter argument for our encode
-    def get_normalization_filter(self):
+    def get_normalization_filter(self) -> str:
         return f'loudnorm=I=-16:LRA=20:TP=-1:dual_mono=true:linear=true:' \
                f'measured_I={self.input_i}:' \
                f'measured_LRA={self.input_lra}:' \
@@ -51,7 +52,7 @@ class LoudnormFilter:
                f'offset={self.target_offset}'
 
     @staticmethod
-    def get_first_pass_filters(seek):
+    def get_first_pass_filters(seek) -> str:
         audio_filters = []
         seek.source_file.apply_audio_resampling(audio_filters)
         audio_filters.append(LoudnormFilter.first_pass_filter)
