@@ -3,9 +3,11 @@ from ._encoding_config import EncodingConfig
 from ._cli import CLI
 from ._seek_collector import SeekCollector
 from ._source_file import SourceFile
+from ._typing import Args, EncodingConfigType
 from ._utils import commandfile_arg_type
 from ._utils import configfile_arg_type
 from appdirs import AppDirs
+from typing import Literal
 
 import argparse
 import configparser
@@ -19,28 +21,39 @@ import sys
 
 def main():
     # Load/Validate Arguments
-    parser = argparse.ArgumentParser(prog='batch_encoder',
-                                     description='Generate/Execute FFmpeg commands for files in acting directory',
-                                     formatter_class=argparse.RawTextHelpFormatter)
+    parser = argparse.ArgumentParser(
+        prog='batch_encoder',
+        description='Generate/Execute FFmpeg commands for files in acting directory',
+        formatter_class=argparse.RawTextHelpFormatter
+    )
+
     parser.add_argument('--generate', '-g', action='store_true', help='Generate commands and write to file')
     parser.add_argument('--execute', '-e', action='store_true', help='Execute commands from file')
     parser.add_argument('--custom', '-c', action='store_true', help='Customize some options for each seek')
-    parser.add_argument('--file', nargs='?', default='commands.txt', type=commandfile_arg_type,
-                        help='1: Name of file commands are written to (default: commands.txt)\n'
-                             '2: Name of file commands are executed from (default: commands.txt)\n'
-                             '3: Name of file commands are written to (default: commands.txt)')
-    parser.add_argument('--configfile', nargs='?', default='batch_encoder.ini', type=configfile_arg_type,
-                        help='Name of config file (default: batch_encoder.ini)\n'
-                             'If the file does not exist, default configuration will be written\n'
-                             'The file is expected to exist in the same directory as this script')
+    parser.add_argument(
+        '--file',
+        nargs='?',
+        default='commands.txt',
+        type=commandfile_arg_type,
+        help='1: Name of file commands are written to (default: commands.txt)\n'
+            '2: Name of file commands are executed from (default: commands.txt)\n'
+            '3: Name of file commands are written to (default: commands.txt)'
+    )
+    parser.add_argument(
+        '--configfile',
+        nargs='?',
+        default='batch_encoder.ini',
+        type=configfile_arg_type,
+        help='Name of config file (default: batch_encoder.ini)\n'
+            'If the file does not exist, default configuration will be written\n'
+            'The file is expected to exist in the same directory as this script'
+    )
     parser.add_argument('--inputfile', nargs='?', help='Set the input files separated by two commas')
-    parser.add_argument('--loglevel', nargs='?', default='info', choices=['debug', 'info', 'error'],
-                        help='Set logging level')
-    args = parser.parse_args()
+    parser.add_argument('--loglevel', nargs='?', default='info', choices=['debug', 'info', 'error'], help='Set logging level')
+    args: Args = parser.parse_args()
 
     # Logging Config
-    logging.basicConfig(stream=sys.stdout, level=logging.getLevelName(args.loglevel.upper()),
-                        format='%(levelname)s: %(message)s')
+    logging.basicConfig(stream=sys.stdout, level=logging.getLevelName(args.loglevel.upper()), format='%(levelname)s: %(message)s')
 
     # Env Check: Check that dependencies are installed
     if shutil.which('ffmpeg') is None:
@@ -56,18 +69,20 @@ def main():
     dirs = AppDirs('batch_encoder', 'AnimeThemes')
     config_file = os.path.join(dirs.user_config_dir, args.configfile)
     if not os.path.exists(config_file):
-        config['Encoding'] = {EncodingConfig.config_allowed_filetypes: EncodingConfig.default_allowed_filetypes,
-                              EncodingConfig.config_encoding_modes: EncodingConfig.default_encoding_modes,
-                              EncodingConfig.config_crfs: EncodingConfig.default_crfs,
-                              EncodingConfig.config_cbr_bitrates: EncodingConfig.default_cbr_bitrates,
-                              EncodingConfig.config_cbr_max_bitrates: EncodingConfig.default_cbr_max_bitrates,
-                              EncodingConfig.config_threads: EncodingConfig.default_threads,
-                              EncodingConfig.config_limit_size_enable: EncodingConfig.default_limit_size_enable,
-                              EncodingConfig.config_alternate_source_files: EncodingConfig.default_alternate_source_files,
-                              EncodingConfig.config_create_preview: EncodingConfig.default_create_preview,
-                              EncodingConfig.config_include_unfiltered: EncodingConfig.default_include_unfiltered,
-                              EncodingConfig.config_default_video_stream: '',
-                              EncodingConfig.config_default_audio_stream: ''}
+        config['Encoding'] = {
+            EncodingConfig.config_allowed_filetypes: EncodingConfig.default_allowed_filetypes,
+            EncodingConfig.config_encoding_modes: EncodingConfig.default_encoding_modes,
+            EncodingConfig.config_crfs: EncodingConfig.default_crfs,
+            EncodingConfig.config_cbr_bitrates: EncodingConfig.default_cbr_bitrates,
+            EncodingConfig.config_cbr_max_bitrates: EncodingConfig.default_cbr_max_bitrates,
+            EncodingConfig.config_threads: EncodingConfig.default_threads,
+            EncodingConfig.config_limit_size_enable: EncodingConfig.default_limit_size_enable,
+            EncodingConfig.config_alternate_source_files: EncodingConfig.default_alternate_source_files,
+            EncodingConfig.config_create_preview: EncodingConfig.default_create_preview,
+            EncodingConfig.config_include_unfiltered: EncodingConfig.default_include_unfiltered,
+            EncodingConfig.config_default_video_stream: '',
+            EncodingConfig.config_default_audio_stream: '',
+        }
         config['VideoFilters'] = EncodingConfig.default_video_filters
 
         os.makedirs(os.path.dirname(config_file), exist_ok=True)
@@ -76,19 +91,12 @@ def main():
 
     # Load config file
     config.read(config_file)
-    encoding_config = EncodingConfig.from_config(config)
+    encoding_config: EncodingConfigType = EncodingConfig.from_config(config)
 
     commands = []
 
     # Set the mode to integer or prompt to the user
-    if args.generate and args.execute:
-        mode = 3
-    elif args.generate:
-        mode = 1
-    elif args.execute:
-        mode = 2
-    else:
-        mode = CLI.choose_mode()
+    mode = CLI.choose_mode(args)
 
     # Generate commands from source file candidates in current directory
     if mode == 1 or mode == 3:
@@ -126,7 +134,7 @@ def main():
                     if args.custom:
                         print(f'\033[92mOutput Name: {seek.output_name}\033[0m')
                         new_encoding_config = CLI.custom_options(new_encoding_config)
-                        
+
                     logging.info(f'Generating commands with seek ss: \'{seek.ss}\', to: \'{seek.to}\'')
                     encode_webm = EncodeWebM(file_value, seek)
                     load_commands = encode_webm.get_commands(new_encoding_config)
@@ -134,7 +142,7 @@ def main():
 
             except KeyboardInterrupt:
                 logging.info(f'Exiting from inclusion of file \'{file}\' after keyboard interrupt')
-        
+
         # Alternate lines per source files
         if encoding_config.alternate_source_files == True:
             output_list = []

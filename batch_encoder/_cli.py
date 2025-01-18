@@ -1,6 +1,8 @@
 from ._audio_filter import AudioFilter
 from ._bitrate_mode import BitrateMode
+from ._typing import Args, EncodingConfigType
 from ._video_filter import VideoFilter
+from typing import Literal
 
 import inquirer
 import logging
@@ -19,7 +21,7 @@ class CLI:
     validate_digits = lambda _, x: all(y.strip().isdigit() for y in x.split(',')) or len(x.strip()) == 0
 
     # Prompt the user for text questions
-    def prompt_text(message, validate=lambda _, x: x):
+    def prompt_text(message, validate=lambda _, x: x) -> str:
         answer = inquirer.prompt([inquirer.Text('text', message=message, validate=validate)])
 
         if answer is None:
@@ -28,9 +30,9 @@ class CLI:
         logging.debug(f'[CLI.prompt_text] answer["text"]: \'{answer["text"]}\'')
 
         return answer['text']
-    
+
     # Prompt the user for time questions
-    def prompt_time(message, validate=validate_time):
+    def prompt_time(message, validate=validate_time) -> str:
         answer = inquirer.prompt([inquirer.Text('time', message=message, validate=validate)])
 
         if answer is None:
@@ -41,19 +43,31 @@ class CLI:
         return answer['time']
 
     # Prompt the user for our mode options to run to the user
-    def choose_mode():
-        modes = [('Generate commands', 1), ('Execute commands', 2), ('Generate and execute commands', 3)]
-        answer = inquirer.prompt([inquirer.List('mode', message='Mode (Enter)', choices=modes)])
+    def choose_mode(args: Args) -> Literal[1, 2, 3]:
+        modes = [
+            ('Generate commands', 1),
+            ('Execute commands', 2),
+            ('Generate and execute commands', 3)
+        ]
 
-        if answer is None:
-            sys.exit()
+        if args.generate and args.execute:
+            return 3
+        elif args.generate:
+            return 1
+        elif args.execute:
+            return 2
+        else:
+            answer = inquirer.prompt([inquirer.List('mode', message='Mode (Enter)', choices=modes)])
 
-        logging.debug(f'[CLI.choose_mode] answer["mode"]: \'{answer["mode"]}\'')
+            if answer is None:
+                sys.exit()
 
-        return answer['mode']
-    
+            logging.debug(f'[CLI.choose_mode] answer["mode"]: \'{answer["mode"]}\'')
+
+            return answer['mode']
+
     # Prompt the user for source files to choose
-    def choose_source_files(source_files):
+    def choose_source_files(source_files) -> list[str]:
         answer = inquirer.prompt([inquirer.Checkbox('source_files', message='Source Files (Space to select)', choices=source_files)])
 
         if answer is None:
@@ -66,9 +80,9 @@ class CLI:
         logging.debug(f'[CLI.choose_source_files] answer["source_files"]: \'{answer["source_files"]}\'')
 
         return answer['source_files']
-      
+
     # Prompt the user for audio filters options
-    def audio_filters_options(output_name):
+    def audio_filters_options(output_name) -> str:
         af = AudioFilter.get_obj()
         fadein, fadeout, mute, custom = (
             AudioFilter.FADE_IN._value_[0],
@@ -90,7 +104,7 @@ class CLI:
             elif answer['af'] == fadeout:
                 af[fadeout]['Start Time'] = CLI.prompt_time('Start Time').strip() or '0'
                 af[fadeout]['Exp'] = CLI.prompt_time('Exponential Value').strip() or '0'
-                     
+
             elif answer['af'] == mute:
                 af[mute]['Start Time'] = CLI.prompt_time('Start Time').strip() or '0'
                 af[mute]['End Time'] = CLI.prompt_time('End Time').strip() or '0'
@@ -124,11 +138,11 @@ class CLI:
         )
 
         return ','.join(af_list)
-    
+
     # Prompt the user for our list of video filters
-    def video_filters(encoding_config):
+    def video_filters(encoding_config: EncodingConfigType) -> EncodingConfigType:
         video_filters_options = VideoFilter.get_obj()
-        
+
         if encoding_config.include_unfiltered:
             encoding_config.video_filters.append((None, 'No Filters'))
 
@@ -155,7 +169,7 @@ class CLI:
         return encoding_config
 
     # Prompt the user for custom options if requested
-    def custom_options(encoding_config):
+    def custom_options(encoding_config: EncodingConfigType) -> EncodingConfigType:
         create_preview = encoding_config.create_preview
         limit_size_enable = encoding_config.limit_size_enable
         encoding_modes = encoding_config.encoding_modes
@@ -171,7 +185,7 @@ class CLI:
 
         if answer is None:
             return encoding_config
-        
+
         encoding_mode_questions = []
         for encoding_mode in answer['encoding_modes'].split(','):
             if encoding_mode == BitrateMode.VBR.name or encoding_mode == BitrateMode.CQ.name:

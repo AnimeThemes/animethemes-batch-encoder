@@ -24,7 +24,7 @@ class EncodingConfig:
     default_crfs = '12,15,18,21,24'
     default_cbr_bitrates = '5600'
     default_cbr_max_bitrates  = '6400'
-    default_threads = '4'
+    default_threads = 4
     default_limit_size_enable = True
     default_alternate_source_files = False
     default_create_preview = False
@@ -52,20 +52,16 @@ class EncodingConfig:
 
     @classmethod
     def from_config(cls, config):
-        allowed_filetypes = config['Encoding'].get(EncodingConfig.config_allowed_filetypes,
-                                                   EncodingConfig.default_allowed_filetypes).split(',')
-        encoding_modes = config['Encoding'].get(EncodingConfig.config_encoding_modes,
-                                                EncodingConfig.default_encoding_modes).split(',')
+        allowed_filetypes = config['Encoding'].get(EncodingConfig.config_allowed_filetypes, EncodingConfig.default_allowed_filetypes).split(',')
+        encoding_modes = config['Encoding'].get(EncodingConfig.config_encoding_modes, EncodingConfig.default_encoding_modes).split(',')
         crfs = config['Encoding'].get(EncodingConfig.config_crfs, EncodingConfig.default_crfs).split(',')
         cbr_bitrates = config['Encoding'].get(EncodingConfig.config_cbr_bitrates, EncodingConfig.default_cbr_bitrates).split(',')
         cbr_max_bitrates = config['Encoding'].get(EncodingConfig.config_cbr_max_bitrates, EncodingConfig.default_cbr_max_bitrates).split(',')
-        threads = config['Encoding'].get(EncodingConfig.config_threads,
-                                         EncodingConfig.default_threads)
+        threads = int(config['Encoding'].get(EncodingConfig.config_threads, EncodingConfig.default_threads))
         limit_size_enable = config.getboolean('Encoding', EncodingConfig.config_limit_size_enable, fallback=EncodingConfig.default_limit_size_enable)
         alternate_source_files = config.getboolean('Encoding', EncodingConfig.config_alternate_source_files, fallback=EncodingConfig.default_alternate_source_files)
         create_preview = config.getboolean('Encoding', EncodingConfig.config_create_preview, fallback=EncodingConfig.default_create_preview)
-        include_unfiltered = config.getboolean('Encoding', EncodingConfig.config_include_unfiltered,
-                                               fallback=EncodingConfig.default_include_unfiltered)
+        include_unfiltered = config.getboolean('Encoding', EncodingConfig.config_include_unfiltered, fallback=EncodingConfig.default_include_unfiltered)
         video_filters = config.items('VideoFilters', EncodingConfig.default_video_filters)
 
         default_video_stream = config['Encoding'].get(EncodingConfig.config_default_video_stream)

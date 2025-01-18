@@ -1,9 +1,9 @@
-import enum
+from enum import Enum
 
 
 # The Video Filter Enumerated List
 # Set video filters
-class VideoFilter(enum.Enum):
+class VideoFilter(Enum):
     def __new__(cls, value, name):
         obj = object.__new__(cls)
         return obj
