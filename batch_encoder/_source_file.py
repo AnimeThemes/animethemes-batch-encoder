@@ -23,7 +23,6 @@ class SourceFile:
         audio_file = None
         try:
             file_format = SourceFile.get_file_format(file)
-            #print(file_format)
 
             selected_video_stream = SourceFile.get_default_stream(file_format, 'video', encoding_config)
             if selected_video_stream is None:
