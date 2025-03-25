@@ -114,19 +114,19 @@ class EncodeWebM:
 
     # First-pass encode
     def get_first_pass(self, encoding_mode, crf=None, cbr_bitrate=None, cbr_max_bitrate=None, threads=4) -> str:
-        return f'ffmpeg {self.seek.get_seek_string()} ' \
+        return f'ffmpeg {self.colorspace.get_args()} {self.seek.get_seek_string()} ' \
                f'-pass 1 -passlogfile {self.seek.output_name} ' \
                f'-map 0:v:{self.source_file.selected_video_stream} ' \
                f'-map 0:a:{self.source_file.selected_audio_stream} ' \
                f'-c:v libvpx-vp9 ' \
                f'{encoding_mode.first_pass_rate_control(cbr_bitrate, cbr_max_bitrate, crf)} ' \
                f'-cpu-used 4 -g {self.g} -threads {threads} -tile-columns 6 -frame-parallel 0 -auto-alt-ref 1 ' \
-               f'-lag-in-frames 25 -row-mt 1 -pix_fmt yuv420p {self.colorspace.get_args()} -an -sn -f webm -y NUL'
+               f'-lag-in-frames 25 -row-mt 1 -pix_fmt yuv420p -an -sn -f webm -y NUL'
 
     # Second-pass encode
     def get_second_pass(self, encoding_mode, crf=None, cbr_bitrate=None, cbr_max_bitrate=None, threads=4, video_filters='', limit_size_enable=True, webm_filename='') -> str:
         limit_size = '-fs ' + EncodeWebM.get_limit_file_size(self, video_filters=video_filters) + ' ' if limit_size_enable else ''
-        return f'ffmpeg {self.seek.get_seek_string()} ' \
+        return f'ffmpeg {self.colorspace.get_args()} {self.seek.get_seek_string()} ' \
                f'-pass 2 -passlogfile {self.seek.output_name} ' \
                f'-map 0:v:{self.source_file.selected_video_stream} ' \
                f'-map 0:a:{self.source_file.selected_audio_stream} ' \
@@ -134,7 +134,6 @@ class EncodeWebM:
                f'{encoding_mode.second_pass_rate_control(cbr_bitrate, cbr_max_bitrate, crf)} ' \
                f'-cpu-used 0 -g {self.g} -threads {threads} {self.get_audio_filters()}{video_filters} -tile-columns 6 ' \
                f'-frame-parallel 0 -auto-alt-ref 1 -lag-in-frames 25 -row-mt 1 -pix_fmt yuv420p ' \
-               f'{self.colorspace.get_args()} ' \
                f'-c:a libopus -b:a {self.audio_bitrate} -ar 48k ' \
                f'{limit_size}' \
                f'-map_metadata:g -1 -map_metadata:s:v -1 -map_metadata:s:a -1 -map_chapters -1 -sn -f webm -y {webm_filename}.webm'
