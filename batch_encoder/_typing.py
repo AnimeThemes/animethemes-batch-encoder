@@ -1,5 +1,6 @@
 from typing import NamedTuple, Dict
 
+
 class Args(NamedTuple):
     generate: bool
     execute: bool
@@ -8,6 +9,7 @@ class Args(NamedTuple):
     configfile: str
     inputfile: str
     loglevel: str
+
 
 class EncodingConfigType(NamedTuple):
     allowed_filetypes: list[str]
