@@ -10,31 +10,37 @@ import re
 # These are the validated sets of cuts for our encodes
 class SeekCollector:
     # Time Duration Specification: https://ffmpeg.org/ffmpeg-utils.html#time-duration-syntax
-    time_pattern = re.compile('^([0-5]?\d:){1,2}[0-5]?\d(?=\.\d+$|$)|\d+(?=\.\d+$|$)')
+    time_pattern = re.compile(r"^([0-5]?\d:){1,2}[0-5]?\d(?=\.\d+$|$)|\d+(?=\.\d+$|$)")
 
     # AnimeThemes File Name Convention: '[Title]-{OP|ED}#v#'
     # Examples: Tamayura-OP1, PlanetWith-ED1v2
-    filename_pattern = re.compile('^[a-zA-Z0-9\-]+$')
+    filename_pattern = re.compile(r"^[a-zA-Z0-9\-]+$")
 
     # Lists for integrity tests
     all_output_names = []
     start_positions_len = 0
 
     # Validations for our prompts
-    validate_seek = lambda _, x: \
-        len(x.strip()) == 0 \
-        or all(SeekCollector.time_pattern.match(y) for y in x.split(',')) \
-        and SeekCollector.start_positions_len in [len(x.split(',')), 0]
+    validate_seek = (
+        lambda _, x: len(x.strip()) == 0
+        or all(SeekCollector.time_pattern.match(y) for y in x.split(","))
+        and SeekCollector.start_positions_len in [len(x.split(",")), 0]
+    )
 
-    validate_output_name = lambda _, x: \
-        len(x.strip()) > 0 \
-        and all(SeekCollector.filename_pattern.match(y) and not y.strip() in SeekCollector.all_output_names for y in x.split(',')) \
-        and SeekCollector.start_positions_len == len(x.split(','))
+    validate_output_name = (
+        lambda _, x: len(x.strip()) > 0
+        and all(
+            SeekCollector.filename_pattern.match(y)
+            and y.strip() not in SeekCollector.all_output_names
+            for y in x.split(",")
+        )
+        and SeekCollector.start_positions_len == len(x.split(","))
+    )
 
     def __init__(self, source_file):
         self.source_file = source_file
-        self.start_positions_len = SeekCollector.prompt_time('Start time(s)')
-        self.end_positions = SeekCollector.prompt_time('End time(s)')
+        self.start_positions_len = SeekCollector.prompt_time("Start time(s)")
+        self.end_positions = SeekCollector.prompt_time("End time(s)")
         self.output_names = SeekCollector.prompt_output_name()
         self.new_audio_filters = SeekCollector.prompt_new_audio_filters(self)
 
@@ -42,15 +48,19 @@ class SeekCollector:
     # For starting positions, a blank input value is the 0 position of the source file
     # For ending positions, a blank input value is the end position of the source file
     def prompt_time(prompt_text) -> list[str]:
-        positions = CLI.prompt_time(prompt_text, validate=SeekCollector.validate_seek).split(',')
-        if prompt_text == 'Start time(s)':
+        positions = CLI.prompt_time(
+            prompt_text, validate=SeekCollector.validate_seek
+        ).split(",")
+        if prompt_text == "Start time(s)":
             SeekCollector.start_positions_len = len(positions)
 
         return positions
 
     # Prompt the user for our list of name for our passlog/WebMs
     def prompt_output_name() -> list[str]:
-        filenames = CLI.prompt_text(message='Output file name(s)', validate=SeekCollector.validate_output_name).split(',')
+        filenames = CLI.prompt_text(
+            message="Output file name(s)", validate=SeekCollector.validate_output_name
+        ).split(",")
         SeekCollector.all_output_names.extend(filenames)
         SeekCollector.start_positions_len = 0
 
@@ -67,16 +77,23 @@ class SeekCollector:
 
     # Integrity Test 1: Positions should be within source file duration
     def is_within_source_duration(self) -> bool:
-        source_file_duration = float(self.source_file.file_format['format']['duration'])
+        source_file_duration = float(self.source_file.file_format["format"]["duration"])
 
-        for start_position, end_position in zip(self.start_positions_len, self.end_positions):
+        for start_position, end_position in zip(
+            self.start_positions_len, self.end_positions
+        ):
             start_time = string_to_seconds(start_position) if start_position else 0
-            end_time = string_to_seconds(end_position) if end_position else source_file_duration
+            end_time = (
+                string_to_seconds(end_position)
+                if end_position
+                else source_file_duration
+            )
 
             logging.debug(
-                f'[SeekCollector.is_within_source_duration] start_time: \'{start_time}\', '
-                f'end_time: \'{end_time}\', '
-                f'source_file_duration: \'{source_file_duration}\'')
+                f"[SeekCollector.is_within_source_duration] start_time: '{start_time}', "
+                f"end_time: '{end_time}', "
+                f"source_file_duration: '{source_file_duration}'"
+            )
 
             if start_time > source_file_duration or end_time > source_file_duration:
                 return False
@@ -85,15 +102,22 @@ class SeekCollector:
 
     # Integrity Test 2: Start position is before end position
     def is_start_before_end(self) -> bool:
-        source_file_duration = float(self.source_file.file_format['format']['duration'])
-        for start_position, end_position in zip(self.start_positions_len, self.end_positions):
+        source_file_duration = float(self.source_file.file_format["format"]["duration"])
+        for start_position, end_position in zip(
+            self.start_positions_len, self.end_positions
+        ):
             start_time = string_to_seconds(start_position) if start_position else 0
-            end_time = string_to_seconds(end_position) if end_position else source_file_duration
+            end_time = (
+                string_to_seconds(end_position)
+                if end_position
+                else source_file_duration
+            )
 
             logging.debug(
-                f'[SeekCollector.is_start_before_end] start_time: \'{start_time}\', '
-                f'end_time: \'{end_time}\', '
-                f'source_file_duration: \'{source_file_duration}\'')
+                f"[SeekCollector.is_start_before_end] start_time: '{start_time}', "
+                f"end_time: '{end_time}', "
+                f"source_file_duration: '{source_file_duration}'"
+            )
 
             if start_time >= end_time:
                 return False
@@ -106,11 +130,11 @@ class SeekCollector:
 
         if not self.is_within_source_duration():
             is_valid = False
-            logging.error('Position greater than file duration')
+            logging.error("Position greater than file duration")
 
         if not self.is_start_before_end():
             is_valid = False
-            logging.error('Start Position is not before End Position')
+            logging.error("Start Position is not before End Position")
 
         if not is_valid:
             SeekCollector.all_output_names.clear()
@@ -122,9 +146,19 @@ class SeekCollector:
     def get_seek_list(self) -> list:
         seek_list = []
 
-        for start_position, end_position, output_name, new_audio_filter in zip(self.start_positions_len, self.end_positions,
-                                                             self.output_names, self.new_audio_filters):
-            seek = Seek(self.source_file, start_position, end_position, output_name, new_audio_filter)
+        for start_position, end_position, output_name, new_audio_filter in zip(
+            self.start_positions_len,
+            self.end_positions,
+            self.output_names,
+            self.new_audio_filters,
+        ):
+            seek = Seek(
+                self.source_file,
+                start_position,
+                end_position,
+                output_name,
+                new_audio_filter,
+            )
             seek_list.append(seek)
 
         return seek_list
