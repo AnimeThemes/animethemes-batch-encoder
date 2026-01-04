@@ -11,7 +11,7 @@ Ideally we are iterating over a combination of filters and settings, picking the
 **Requirements:**
 
 * FFmpeg
-* Python >= 3.6
+* Python >= 3.14
 
 **Install:**
 
